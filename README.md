@@ -30,7 +30,9 @@ Go to `nbodyacc/build/Makefile` and enter the name of your setup file in: \
 Choose whether you want self-gravity to be computed: `GRAVITY=yes/no`, \
 and whether the point masses are binary pairs `BINARY=yes/no`.
 
-Now navigate to the work-directory, and enter: \
+Now create a work-directory anywhere _outside_ this code's directory. The work directory is where the simulation outputs are stored. Create a new work-directory for every new run. 
+
+Navigate to a work-directory of your choice and enter: \
 `getmake` \
 to create the local Makefile.
 
