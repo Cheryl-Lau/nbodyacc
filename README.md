@@ -8,7 +8,7 @@ Point masses can be treated as binaries.
 Installation 
 -------------
 
-To get a copy, fork to create a clone in your github then enter the following into your terminal: \
+To get a copy, fork to create a clone in your github, then enter the following into your terminal: \
 `git clone https://github.com/USERNAME/nbodyacc.git`
 
 It is recommended to add the following lines into your .bashrc or .bash-profile: \
@@ -19,7 +19,7 @@ It is recommended to add the following lines into your .bashrc or .bash-profile:
 `ulimit -s unlimited` \
 `alias getmake='~/nbodyacc/scripts/writemake.sh > Makefile'`
 
-Don't forget to `source .bashrc`
+Don't forget to type `source .bashrc` after editing the file, or restart the terminal.  
 
 Running a simulation 
 --------------------
@@ -39,5 +39,5 @@ to create the local Makefile.
 To compile, enter: \
 `make; make setup` 
 
-To clear the executables after modifying the code, enter: \
+To clear the executables and re-compile after modifying the code, enter: \
 `rm nbody*; make clean`
