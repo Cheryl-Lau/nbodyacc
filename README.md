@@ -8,7 +8,7 @@ Point masses can be treated as binaries.
 Installation 
 -------------
 
-To get a copy, fork to create a clone then enter the following into your terminal: \
+To get a copy, fork to create a clone in your github then enter the following into your terminal: \
 `git clone https://github.com/USERNAME/nbodyacc.git`
 
 It is recommended to add the following lines into your .bashrc or .bash-profile: \
@@ -24,7 +24,13 @@ Don't forget to `source .bashrc`
 Running a simulation 
 --------------------
 
-Navigate to the work-directory, and enter: \
+Go to `nbodyacc/build/Makefile` and enter the name of your setup file in: \
+`SETUPFILE= <name of setup>.f90`
+
+Choose whether you want self-gravity to be computed: `GRAVITY=yes/no`, \
+and whether the point masses are binary pairs `BINARY=yes/no`.
+
+Now navigate to the work-directory, and enter: \
 `getmake` \
 to create the local Makefile.
 
