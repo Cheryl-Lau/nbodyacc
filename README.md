@@ -40,4 +40,4 @@ To compile, enter: \
 `make; make setup` 
 
 To clear the executables after modifying the code, enter: \
-`make clean`
+`rm nbody*; make clean`
