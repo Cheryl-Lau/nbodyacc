@@ -21,11 +21,12 @@ It is recommended to add the following lines into your .bashrc or .bash-profile:
 
 Don't forget to type `source .bashrc` after editing the file, or restart the terminal.  
 
-Running a simulation 
---------------------
+Compiling the code  
+------------------
 
 Go to `nbodyacc/build/Makefile` and enter the name of your setup file in: \
-`SETUPFILE= <name of setup>.f90`
+`SETUPFILE= <name of setup>.f90` \
+This setup file should be stored in `nbodyacc/src/setup/setup_*.f90`.
 
 Choose whether you want self-gravity to be computed: `GRAVITY=yes/no`, \
 and whether the point masses are binary pairs `BINARY=yes/no`.
@@ -39,11 +40,14 @@ to create the local Makefile.
 To compile, enter: \
 `make; make setup` 
 
-To clear the executables and re-compile after modifying the code, enter: \
-`rm nbody*; make clean`
+To re-compile after modifying the source code, enter: \
+`rm nbody*; make clean; make; make setup` \
+which clears the previously generated executables. 
 
-Modify/create your setup file in `src/setup/setup_*.f90`, then use it to generate the initial dumpfile by running the command: \
+Running a simulation 
+--------------------
+
+First, in your work-directory, run the command: \
 `./nbodyaccsetup` \
-in your work-directory.
-This creates a dumpfile `ptmass_00000.tmp` and an input file `input_params.in` which contains the defaults of the runtime parameters. Modify if necessary. 
+This creates the initial dumpfile `ptmass_00000.tmp` and an input file `input_params.in` which contains the defaults of the runtime parameters. Modify if necessary. 
 
