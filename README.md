@@ -41,3 +41,9 @@ To compile, enter: \
 
 To clear the executables and re-compile after modifying the code, enter: \
 `rm nbody*; make clean`
+
+Modify/create your setup file in `src/setup/setup_*.f90`, then use it to generate the initial dumpfile by running the command: \
+`./nbodyaccsetup` \
+in your work-directory.
+This creates a dumpfile `ptmass_00000.tmp` and an input file `input_params.in` which contains the defaults of the runtime parameters. Modify if necessary. 
+
