@@ -1,20 +1,24 @@
 
 program nbodyaccsetup 
 
- use setup,  only:set_ptmass,read_setup_infile,write_dump,write_infile
- use ptmass, only:maxptmass,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass
+ use setup,  only:set_ptmass,write_dump
+ use ptmass, only:nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass
  use ptmass, only:allocate_ptmass,deallocate_ptmass
+ use readwrite_infile, only:write_infile 
  implicit none
 
- call read_setup_infile()
+ call allocate_ptmass
 
- call allocate_ptmass()
+#ifdef BINARY
+ call set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)
+ call write_dump(nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)    ! the starting dump 
+#else 
+ call set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass)
+ call write_dump(nptmass,xyzhm_ptmass,vxyz_ptmass)
+#endif 
 
- call set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass)
- call write_dump()    ! the starting dump 
+ call deallocate_ptmass
 
- call deallocate_ptmass()
+ call write_infile ! with default settings 
 
- call write_infile()  ! with default settings 
-
-end 
+end program

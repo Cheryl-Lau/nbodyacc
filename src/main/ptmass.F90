@@ -32,7 +32,7 @@ subroutine allocate_ptmass
 #ifdef BINARY
  allocate(sep_ptmass(maxptmass))
  allocate(massq_ptmass(maxptmass))
- allocate(Lspin_ptmass(maxptmass))
+ allocate(Lspin_ptmass(3,maxptmass))
 #endif 
 
 end subroutine allocate_ptmass

@@ -52,14 +52,11 @@ endif
 SETUPFILE= setup_turbcore.f90
 
 #
-# Switch on/off physics 
+# Configuration options - physics 
 #
-BINARY=no
+BINARY=yes
 GRAVITY=yes
 
-#
-# Compile options - physics 
-#
 ifeq ($(GRAVITY), yes)
     FPPFLAGS += -DGRAVITY
 endif
@@ -68,7 +65,7 @@ ifeq ($(BINARY), yes)
 endif
 
 #
-# Compile options - software 
+# Configuration options - software 
 #
 ifeq ($(OPENMP), yes)
     FFLAGS += ${OMPFLAGS}
@@ -99,7 +96,8 @@ endif
 #
 # Main 
 #
-SOURCES= physcon.f90 accrete.F90 timestep.f90 step_RK4.F90 ptmass.F90 evolve.F90 initial.F90  
+SOURCES= physcon.f90 units.f90 accrete.F90 timestep.f90 forces.F90 step_RK4.F90 ptmass.F90  \
+         readwrite_infile.f90 evolve.F90 initial.F90  
 
 OBJECTS1 = $(SOURCES:.f90=.o)
 OBJECTS = $(OBJECTS1:.F90=.o)
@@ -112,8 +110,8 @@ nbodyacc: $(OBJECTS) nbodyacc.o
 #
 # Setup 
 #
-
-SRCSETUP= physcon.f90 timestep.f90 ptmass.F90 ${SETUPFILE}   # ADD ALL FILES NEEDED BY SETUP 
+SRCSETUP= physcon.f90 units.f90 timestep.f90 ptmass.F90 forces.F90 readwrite_infile.f90 \
+         vel_turbcube.f90 ${SETUPFILE}   # ADD ALL FILES NEEDED BY SETUP 
 
 OBJSETUP1= $(SRCSETUP:.f90=.o)
 OBJSETUP= $(OBJSETUP1:.F90=.o) 

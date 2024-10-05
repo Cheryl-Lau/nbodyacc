@@ -4,6 +4,7 @@ module evolve
  use ptmass,   only:nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass
  use accrete,  only:accrete_gas
  use step_RK4, only:step
+ use timestep, only:t_end
  implicit none 
  public :: evol
 
@@ -12,6 +13,7 @@ module evolve
 contains
 
 subroutine evol()
+ real :: t
 
  evol_loop: do while (t <= t_end)
 
