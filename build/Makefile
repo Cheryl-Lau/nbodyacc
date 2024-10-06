@@ -50,13 +50,13 @@ endif
 #
 # Enter the setup file 
 #
-SETUPFILE= setup_turbcore_binary.f90
+SETUPFILE= setup_turbcore.f90
 
 #
 # Configuration options - physics 
 #
-BINARY=yes
-GRAVITY=yes
+BINARY= no
+GRAVITY= yes
 
 ifeq ($(GRAVITY), yes)
     FPPFLAGS += -DGRAVITY
@@ -99,7 +99,7 @@ endif
 # Main 
 #
 SOURCES= physcon.f90 units.f90 accrete.F90 timestep.f90 energies.f90 forces.F90 step_RK4.F90 \
-         ptmass.F90 readwrite_infile.f90 readwrite_dumpfile.F90 evolve.F90 initial.F90  
+         ptmass.F90 readwrite_dumpfile.F90 readwrite_infile.f90 evolve.F90 initial.F90  
 
 OBJECTS1 = $(SOURCES:.f90=.o)
 OBJECTS = $(OBJECTS1:.F90=.o)
@@ -112,8 +112,8 @@ nbodyacc: $(OBJECTS) nbodyacc.o
 #
 # Setup 
 #
-SRCSETUP= physcon.f90 units.f90 timestep.f90 energies.f90 ptmass.F90 forces.F90 readwrite_infile.f90 \
-         vel_turbcube.f90 readwrite_dumpfile.F90 ${SETUPFILE}   # ADD ALL FILES NEEDED BY SETUP 
+SRCSETUP= physcon.f90 units.f90 timestep.f90 energies.f90 ptmass.F90 forces.F90 readwrite_dumpfile.f90 \
+         vel_turbcube.f90 readwrite_infile.F90 ${SETUPFILE}   # ADD ALL FILES NEEDED BY SETUP 
 
 OBJSETUP1= $(SRCSETUP:.f90=.o)
 OBJSETUP= $(OBJSETUP1:.F90=.o) 
@@ -129,7 +129,7 @@ setup: nbodyaccsetup
 # Clean 
 #
 clean: clean
-	cd $(BINDIR); rm nbodyacc*; cd ../src/main; rm -f *.mod; cd ../setup; rm -f *.mod
+	rm *.o; cd $(BINDIR); rm nbodyacc*; cd ../src/main; rm -f *.mod; cd ../setup; rm -f *.mod
 
 err:
 	$(error aborting);
