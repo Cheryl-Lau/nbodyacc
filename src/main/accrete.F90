@@ -2,7 +2,7 @@
 module accrete
 
  implicit none 
- public :: accrete_gas,set_env
+ public :: accrete_gas,set_env,get_accretion_rad
 
 
  private
@@ -12,6 +12,12 @@ contains
 subroutine accrete_gas()
 
 end subroutine accrete_gas
+
+
+subroutine get_accretion_rad()
+
+
+end subroutine get_accretion_rad
 
 
 subroutine get_tidal_rad()

@@ -3,6 +3,7 @@ module ptmass
 
 
  implicit none 
+ public :: update_sep
  public :: allocate_ptmass,deallocate_ptmass 
 
  integer, public :: maxptmass = 1e3
@@ -21,6 +22,14 @@ module ptmass
 
 contains 
 
+
+subroutine update_sep(nptmass,massq_ptmass)
+ integer, intent(in)    :: nptmass 
+ real,    intent(inout) :: massq_ptmass(:)
+
+ 
+
+end subroutine update_sep
 
 
 subroutine allocate_ptmass

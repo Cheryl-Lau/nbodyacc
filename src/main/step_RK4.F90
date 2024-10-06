@@ -11,17 +11,16 @@ contains
 !-------------------------------------------------------------------
 ! Fourth-order Runge-Kutta integrator 
 !-------------------------------------------------------------------
-subroutine step(nptmass,xyzhm,vxyz,fxyz)
- use timestep, only:dt
+subroutine step(nptmass,xyzhm,vxyz,fxyz,dt)
  use force,    only:compute_forces
  integer, intent(in)    :: nptmass
+ real,    intent(in)    :: dt
  real,    intent(inout) :: xyzhm(:,:) ! pos 
  real,    intent(inout) :: vxyz(:,:)  ! vel
  real,    intent(inout) :: fxyz(:,:)  ! accel
  integer :: ip
  real    :: hdt 
- !- dummy vars for RK4 intermediate steps 
- real    :: xyzhm1(5,nptmass),xyzhm2(5,nptmass),xyzhm3(5,nptmass)
+ real    :: xyzhm1(5,nptmass),xyzhm2(5,nptmass),xyzhm3(5,nptmass)   !- dummy vars for RK4 intermediate steps 
  real    :: vxyz1(3,nptmass),vxyz2(3,nptmass),vxyz3(3,nptmass)
  real    :: fxyz0(3,nptmass),fxyz1(3,nptmass),fxyz2(3,nptmass),fxyz3(3,nptmass)
 

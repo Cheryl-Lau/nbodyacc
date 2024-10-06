@@ -13,13 +13,14 @@ contains
 !-------------------------------------------------------------------
 ! Set up the initial positions and velocities of point masses
 !-------------------------------------------------------------------
-subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass)
+subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)
  use physcon,   only:pc,solarm
  use units,     only:set_units,utime,unit_velocity
  use turb_grid, only:map_turbvel,rms_mach,c_sound
  integer, intent(out)   :: nptmass
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: vxyz_ptmass(:,:)
+ real,    intent(inout) :: massq_ptmass(:)
  integer :: ip,idim
  real    :: box_size,mass,r_acc,ran_pos
 
@@ -40,6 +41,7 @@ subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass)
     enddo 
     xyzhm_ptmass(4,ip) = r_acc
     xyzhm_ptmass(5,ip) = 5.d0
+    massq_ptmass(ip)   = 1.     ! equal mass binaries 
  enddo 
 
  !- Adding turbulence

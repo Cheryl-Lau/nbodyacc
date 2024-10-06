@@ -5,22 +5,28 @@ module timestep
  public :: constrain_dt 
  public :: read_infile_timestep,write_infile_timestep
  
- real,  public :: dtmax = 1e-3
- real,  public :: t_end = 1e2
- real,  public :: dt
+ integer, public :: nout = 100    ! write dump every <nout> dt
+ real,    public :: dtmax  = 1d-3
+ real,    public :: t_end  = 1d2
+ real,    public :: t_init = 0.d0
  
  private
- namelist /timestep_params/ dtmax,t_end
+ namelist /timestep_params/ dtmax,t_end,nout
 
 contains 
 
-subroutine constrain_dt()
+subroutine constrain_dt(nptmass,xyzhm_ptmass,vxyz_ptmass,dt)
+ integer, intent(in) :: nptmass
+ real,    intent(in) :: xyzhm_ptmass(:,:)
+ real,    intent(in) :: vxyz_ptmass(:,:)
+ real,    intent(inout) :: dt
 
 end subroutine constrain_dt
 
 
-
-
+!--------------------------------------------------------------
+! Write module options to input file
+!--------------------------------------------------------------
 subroutine read_infile_timestep(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc

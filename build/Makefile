@@ -16,6 +16,7 @@ DOUBLEPRECISION=yes
 ENDIAN=little 
 DEBUG=no 
 LDFLAGS=
+FPPFLAGS=
 
 ifeq ($(SYSTEM), gfortran)
     FC= gfortran
@@ -49,7 +50,7 @@ endif
 #
 # Enter the setup file 
 #
-SETUPFILE= setup_turbcore.f90
+SETUPFILE= setup_turbcore_binary.f90
 
 #
 # Configuration options - physics 
@@ -83,6 +84,7 @@ ifeq ($(ENDIAN), little)
     FFLAGS += ${ENDIANFLAGLITTLE}
 endif
 
+
 #
 # define the implicit rule to make a .o file from a .f90 file
 #
@@ -96,8 +98,8 @@ endif
 #
 # Main 
 #
-SOURCES= physcon.f90 units.f90 accrete.F90 timestep.f90 forces.F90 step_RK4.F90 ptmass.F90  \
-         readwrite_infile.f90 evolve.F90 initial.F90  
+SOURCES= physcon.f90 units.f90 accrete.F90 timestep.f90 energies.f90 forces.F90 step_RK4.F90 \
+         ptmass.F90 readwrite_infile.f90 readwrite_dumpfile.F90 evolve.F90 initial.F90  
 
 OBJECTS1 = $(SOURCES:.f90=.o)
 OBJECTS = $(OBJECTS1:.F90=.o)
@@ -105,13 +107,13 @@ OBJECTS = $(OBJECTS1:.F90=.o)
 .PHONY: nbodyacc
 
 nbodyacc: $(OBJECTS) nbodyacc.o
-	$(FC) $(FFLAGS) -o $(BINDIR)/$@ $(OBJECTS) nbodyacc.o $(LDFLAGS)
+	$(FC) $(FFLAGS) $(FPPFLAGS) -o $(BINDIR)/$@ $(OBJECTS) nbodyacc.o $(LDFLAGS)
 
 #
 # Setup 
 #
-SRCSETUP= physcon.f90 units.f90 timestep.f90 ptmass.F90 forces.F90 readwrite_infile.f90 \
-         vel_turbcube.f90 ${SETUPFILE}   # ADD ALL FILES NEEDED BY SETUP 
+SRCSETUP= physcon.f90 units.f90 timestep.f90 energies.f90 ptmass.F90 forces.F90 readwrite_infile.f90 \
+         vel_turbcube.f90 readwrite_dumpfile.F90 ${SETUPFILE}   # ADD ALL FILES NEEDED BY SETUP 
 
 OBJSETUP1= $(SRCSETUP:.f90=.o)
 OBJSETUP= $(OBJSETUP1:.F90=.o) 
@@ -119,7 +121,7 @@ OBJSETUP= $(OBJSETUP1:.F90=.o)
 .PHONY: nbodyaccsetup
 
 nbodyaccsetup: $(OBJSETUP) nbodyaccsetup.o
-	$(FC) $(FFLAGS) -o $(BINDIR)/$@  $(OBJSETUP) nbodyaccsetup.o $(LDFLAGS)
+	$(FC) $(FFLAGS) $(FPPFLAGS) -o $(BINDIR)/$@  $(OBJSETUP) nbodyaccsetup.o $(LDFLAGS)
 
 setup: nbodyaccsetup
 
@@ -127,7 +129,7 @@ setup: nbodyaccsetup
 # Clean 
 #
 clean: clean
-	cd $(BINDIR); rm -f *.o
+	cd $(BINDIR); rm nbodyacc*; cd ../src/main; rm -f *.mod; cd ../setup; rm -f *.mod
 
 err:
 	$(error aborting);
