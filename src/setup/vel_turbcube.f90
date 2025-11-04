@@ -4,9 +4,6 @@ module turb_grid
  implicit none  
  public :: map_turbvel
 
- real,  public :: rms_mach = 3.0   ! Turbulent mach number
- real,  public :: c_sound  = 2.   ! Sound speed in molecular cloud
-
  private 
 
  contains 
@@ -16,9 +13,9 @@ module turb_grid
 ! maps the velocities onto the given point mass locations.
 ! ***NOTE: all grids must be centred at the origin***
 !-------------------------------------------------------------------
-subroutine map_turbvel(box_size,nptmass,xyzhm_ptmass,vxyz_ptmass)
+subroutine map_turbvel(box_size,nptmass,xyzhm_ptmass,vxyz_ptmass,cs,rms_mach)
  integer, intent(in)    :: nptmass
- real,    intent(in)    :: box_size
+ real,    intent(in)    :: box_size,cs,rms_mach
  real,    intent(in)    :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: vxyz_ptmass(:,:)
  integer :: nspace,nbytes_per_vel,nbytes_fheader
@@ -94,7 +91,7 @@ subroutine map_turbvel(box_size,nptmass,xyzhm_ptmass,vxyz_ptmass)
  rmsmach = 0.0
  do ip = 1,nptmass
     v2i     = dot_product(vxyz_ptmass(1:3,ip),vxyz_ptmass(1:3,ip))
-    rmsmach = rmsmach + v2i/c_sound**2
+    rmsmach = rmsmach + v2i/cs**2
  enddo
  rmsmach = sqrt(rmsmach/nptmass)
  if (rmsmach > 0.) then
