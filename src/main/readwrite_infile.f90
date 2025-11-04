@@ -18,7 +18,7 @@ subroutine write_infile()
 
  open(unit_infile,file='input_params.in',iostat=rc) 
 
- !- Write options from each module 
+ !--Write options from each module 
  call write_infile_startdump(unit_infile)
  call write_infile_timestep(unit_infile)
  call write_infile_force(unit_infile)

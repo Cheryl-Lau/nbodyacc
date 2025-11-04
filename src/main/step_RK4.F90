@@ -11,14 +11,13 @@ contains
 !-------------------------------------------------------------------
 ! Fourth-order Runge-Kutta integrator 
 !-------------------------------------------------------------------
-subroutine step(nptmass,xyzhm,vxyz,fxyz,dt)
+subroutine step(nptmass,xyzhm,vxyz,dt)
  use force,    only:compute_forces
  integer, intent(in)    :: nptmass
  real,    intent(in)    :: dt
  real,    intent(inout) :: xyzhm(:,:) ! pos 
  real,    intent(inout) :: vxyz(:,:)  ! vel
- real,    intent(inout) :: fxyz(:,:)  ! accel
- integer :: ip
+ integer :: i
  real    :: hdt 
  real    :: xyzhm1(5,nptmass),xyzhm2(5,nptmass),xyzhm3(5,nptmass)   !- dummy vars for RK4 intermediate steps 
  real    :: vxyz1(3,nptmass),vxyz2(3,nptmass),vxyz3(3,nptmass)
@@ -27,30 +26,29 @@ subroutine step(nptmass,xyzhm,vxyz,fxyz,dt)
  hdt = dt/2.d0  ! half-step
 
  call compute_forces(nptmass,xyzhm,fxyz0)
- do ip = 1,nptmass 
-    vxyz1(:,ip) = vxyz(:,ip) + fxyz0(:,ip)*hdt
-    xyzhm1(1:3,ip) = xyzhm(1:3,ip) + vxyz1(:,ip)*hdt
+ do i = 1,nptmass 
+    vxyz1(:,i) = vxyz(:,i) + fxyz0(:,i)*hdt
+    xyzhm1(1:3,i) = xyzhm(1:3,i) + vxyz1(:,i)*hdt
  enddo 
 
  call compute_forces(nptmass,xyzhm1,fxyz1)
- do ip = 1,nptmass 
-    vxyz2(:,ip) = vxyz(:,ip) + fxyz1(:,ip)*hdt 
-    xyzhm2(1:3,ip) = xyzhm(1:3,ip) + vxyz2(:,ip)*hdt 
+ do i = 1,nptmass 
+    vxyz2(:,i) = vxyz(:,i) + fxyz1(:,i)*hdt 
+    xyzhm2(1:3,i) = xyzhm(1:3,i) + vxyz2(:,i)*hdt 
  enddo 
 
  call compute_forces(nptmass,xyzhm2,fxyz2)
- do ip = 1,nptmass 
-    vxyz3(:,ip) = vxyz(:,ip) + fxyz2(:,ip)*hdt 
-    xyzhm3(1:3,ip) = xyzhm(1:3,ip) + vxyz3(:,ip)*hdt 
+ do i = 1,nptmass 
+    vxyz3(:,i) = vxyz(:,i) + fxyz2(:,i)*hdt 
+    xyzhm3(1:3,i) = xyzhm(1:3,i) + vxyz3(:,i)*hdt 
  enddo 
 
  call compute_forces(nptmass,xyzhm3,fxyz3)
 
  !- Actual update 
- do ip = 1,nptmass
-    vxyz(:,ip) = vxyz(:,ip) + 1.d0/6.d0 * (fxyz0(:,ip) + 2.d0*fxyz1(:,ip) + 2.d0*fxyz2(:,ip) + fxyz3(:,ip)) * dt 
-    xyzhm(1:3,ip) = xyzhm(1:3,ip) + 1.d0/6.d0 * (vxyz(:,ip) + 2.d0*vxyz1(:,ip) + 2.d0*vxyz2(:,ip) + vxyz3(:,ip)) * dt
-    fxyz(:,ip) = 1.d0/6.d0 * (fxyz0(:,ip) + 2.d0*fxyz1(:,ip) + 2.d0*fxyz2(:,ip) + fxyz3(:,ip))  ! store
+ do i = 1,nptmass
+    vxyz(:,i) = vxyz(:,i) + 1.d0/6.d0 * (fxyz0(:,i) + 2.d0*fxyz1(:,i) + 2.d0*fxyz2(:,i) + fxyz3(:,i)) * dt 
+    xyzhm(1:3,i) = xyzhm(1:3,i) + 1.d0/6.d0 * (vxyz(:,i) + 2.d0*vxyz1(:,i) + 2.d0*vxyz2(:,i) + vxyz3(:,i)) * dt
  enddo 
 
 end subroutine step

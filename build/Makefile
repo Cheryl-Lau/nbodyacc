@@ -50,12 +50,12 @@ endif
 #
 # Enter the setup file 
 #
-SETUPFILE= setup_turbcore.f90
+SETUPFILE= setup_turbcore_binary.f90
 
 #
 # Configuration options - physics 
 #
-BINARY= no
+BINARY= yes
 GRAVITY= yes
 
 ifeq ($(GRAVITY), yes)
@@ -98,7 +98,8 @@ endif
 #
 # Main 
 #
-SOURCES= physcon.f90 units.f90 accrete.F90 timestep.f90 energies.f90 forces.F90 step_RK4.F90 \
+SOURCES= physcon.f90 units.f90 timestep.f90 energies.f90  \
+         extforce_plummer.f90 extforce_galactic.f90 extforce_king.f90 forces.F90 step_RK4.F90 \
          ptmass.F90 readwrite_dumpfile.F90 readwrite_infile.f90 evolve.F90 initial.F90  
 
 OBJECTS1 = $(SOURCES:.f90=.o)

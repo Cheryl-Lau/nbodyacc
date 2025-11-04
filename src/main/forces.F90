@@ -1,108 +1,115 @@
 
 module force 
 
+ use extforce_plummer,  only:plummer_potential,read_infile_plummer,write_infile_plummer
+ use extforce_galactic, only:galactic_potential,read_infile_galactic,write_infile_galactic
+ use extforce_king,     only:king_potential,read_infile_king,write_infile_king 
+
  implicit none 
  public :: compute_forces
  public :: read_infile_force,write_infile_force
 
- logical, public :: use_plumerpot   = .true. 
- logical, public :: use_galdisc_pot = .false. 
+ integer, public :: iextforce = 3
+
+ integer, parameter, public :: &
+   iext_plummer  = 1, &
+   iext_galactic = 2, &
+   iext_king     = 3
 
  private 
- namelist /force_params/ use_plumerpot,use_galdisc_pot
+
+ namelist /force_params/ iextforce
 
 contains 
 
 !---------------------------------------------------------------
 ! Total force per unit mass (acceleration)
 !---------------------------------------------------------------
-subroutine compute_forces(nptmass,xyzhm,fxyz)
+subroutine compute_forces(nptmass,xyzhm_ptmass,fxyz_ptmass)
+ use ptmass, only:poten_ptmass 
  integer, intent(in)  :: nptmass
- real,    intent(in)  :: xyzhm(:,:)
- real,    intent(out) :: fxyz(:,:)
+ real,    intent(in)  :: xyzhm_ptmass(:,:)
+ real,    intent(out) :: fxyz_ptmass(:,:)
+ integer :: i
+ real    :: xi,yi,zi,extfxi,extfyi,extfzi,phi
 
- fxyz = 0.  ! init 
+ fxyz_ptmass  = 0.d0  ! init 
+ poten_ptmass = 0.d0
 
 #ifdef GRAVITY
- call self_grav(nptmass,xyzhm,fxyz)
+ call self_grav(nptmass,xyzhm_ptmass,fxyz_ptmass,poten_ptmass)
 #endif 
 
- if (use_plumerpot) then 
-    call plumer_potential(nptmass,xyzhm,fxyz)
- endif 
- if (use_galdisc_pot) then 
-    call galdisc_potential(nptmass,xyzhm,fxyz)
- endif
+ if (iextforce > 0) then 
+    do i = 1,nptmass
+       xi = xyzhm_ptmass(1,i)
+       yi = xyzhm_ptmass(2,i)
+       zi = xyzhm_ptmass(3,i)
+       call external_force(xi,yi,zi,extfxi,extfyi,extfzi,phi)
+       fxyz_ptmass(1,i) = fxyz_ptmass(1,i) + extfxi
+       fxyz_ptmass(2,i) = fxyz_ptmass(2,i) + extfyi
+       fxyz_ptmass(3,i) = fxyz_ptmass(3,i) + extfzi
+       poten_ptmass(i)  = poten_ptmass(i)  + phi 
+    enddo
+ endif  
 
 end subroutine compute_forces
 
-!---------------------------------------------------------------
-! Self-gravity - consider doing a tree in the future 
-!---------------------------------------------------------------
-subroutine self_grav(nptmass,xyzhm,fxyz)
- use physcon, only:gg
+!
+! Self-gravity 
+!
+subroutine self_grav(nptmass,xyzhm_ptmass,fxyz_ptmass,poten_ptmass)
  integer, intent(in)    :: nptmass
- real,    intent(in)    :: xyzhm(:,:)
- real,    intent(inout) :: fxyz(:,:)
+ real,    intent(in)    :: xyzhm_ptmass(:,:)
+ real,    intent(inout) :: fxyz_ptmass(:,:),poten_ptmass(:)
  integer :: i,j
- real    :: r_ij(3),fsum(3),f_ij(3),absr
+ real    :: r_ij(3),fsum(3),f_ij(3),absr,mi,mj,phi,phisum
 
  do i = 1,nptmass
-    fsum = 0.d0 
+    fsum   = 0.d0 
+    phisum = 0.d0 
+    mi     = xyzhm_ptmass(5,i)
     over_neigh: do j = 1,nptmass
         if (i /= j) then 
-            r_ij = xyzhm(1:3,i) - xyzhm(1:3,j)
+            r_ij = xyzhm_ptmass(1:3,i) - xyzhm_ptmass(1:3,j)
             absr = sqrt(dot_product(r_ij,r_ij))
-            f_ij = -xyzhm(5,j)*r_ij/absr**3    ! per mass(i); G=1 in code units 
+            mj   = xyzhm_ptmass(5,j)
+            f_ij = -mj*r_ij/absr**3    ! per mass(i); G=1 in code units 
             fsum = fsum + f_ij 
+            phi  = -mi*mj/absr
+            phisum = phisum + phi 
         endif 
     enddo over_neigh 
-    fxyz(1:3,i) = fxyz(1:3,i) + fsum
+    fxyz_ptmass(1:3,i) = fxyz_ptmass(1:3,i) + fsum
+    poten_ptmass(i)    = poten_ptmass(i)    + phisum 
  enddo 
 
 end subroutine self_grav
 
-!---------------------------------------------------------------
-! Plummer potential for modelling a cluster 
-!---------------------------------------------------------------
-subroutine plumer_potential(nptmass,xyzhm,fxyz)
- integer, intent(in)    :: nptmass
- real,    intent(in)    :: xyzhm(:,:)
- real,    intent(inout) :: fxyz(:,:)
+!
+! External potential acting on a given ptmass
+!
+subroutine external_force(xi,yi,zi,extfxi,extfyi,extfzi,phi) 
+ real, intent(in)  :: xi,yi,zi
+ real, intent(out) :: extfxi,extfyi,extfzi,phi
 
-end subroutine plumer_potential
+ select case(iextforce)
 
-!---------------------------------------------------------------
-! Galactic disc potential 
-!---------------------------------------------------------------
-subroutine galdisc_potential(nptmass,xyzhm,fxyz)
- integer, intent(in)    :: nptmass
- real,    intent(in)    :: xyzhm(:,:)
- real,    intent(inout) :: fxyz(:,:)
- integer :: i,j
- real    :: r_ij(3),fsum(3),f_ij(3)
- real    :: x,y,z,fac,dphidx,dphidy,dphidz
- real    :: Rc,vc,q1,q2
+ case(iext_plummer) 
+    call plummer_potential(xi,yi,zi,extfxi,extfyi,extfzi,phi)
 
- Rc = 2.d-1
- vc = 1.d0
- q1 = 1.d0
- q2 = 1.d0
+ case(iext_galactic)
+    call galactic_potential(xi,yi,zi,extfxi,extfyi,extfzi,phi)
 
- do i = 1,nptmass
-    fsum = 0.d0 
-    x = xyzhm(1,i)
-    y = xyzhm(2,i)
-    z = xyzhm(3,i)
-    fac = vc**2/2.d0 * (Rc**2 + x**2 + y**2/q1**2 + z**2/q2**2)**(-1)
-    dphidx = fac*2.d0 * x
-    dphidy = fac*2.d0/q1**2 * y
-    dphidz = fac*2.d0/q2**2 * z
-    f_ij = (/-dphidx,-dphidy,-dphidz/)
-    fxyz(1:3,i) = fxyz(1:3,i) + f_ij 
- enddo 
+ case(iext_king)
+    call king_potential(xi,yi,zi,extfxi,extfyi,extfzi,phi)
 
-end subroutine galdisc_potential
+ case default
+    stop 'invalid iextforce'
+
+ end select 
+
+end subroutine external_force 
 
 
 !--------------------------------------------------------------
@@ -115,14 +122,37 @@ subroutine read_infile_force(unit_infile)
  read(unit_infile,nml=force_params,iostat=rc)
  if (rc /= 0) stop 'cannot read force options'
 
+ select case(iextforce)
+ case(iext_plummer) 
+    call read_infile_plummer(unit_infile)
+ case(iext_galactic)
+    call read_infile_galactic(unit_infile)
+ case(iext_king)
+    call read_infile_king(unit_infile)
+ case default
+    stop 'invalid iextforce'
+ end select 
+
 end subroutine read_infile_force
+
 
 subroutine write_infile_force(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc
 
  write(unit_infile,nml=force_params,iostat=rc)
- if (rc /= 0) stop 'cannot write timestep options'
+ if (rc /= 0) stop 'cannot write force options'
+
+ select case(iextforce)
+ case(iext_plummer) 
+    call write_infile_plummer(unit_infile)
+ case(iext_galactic)
+    call write_infile_galactic(unit_infile)
+ case(iext_king)
+    call write_infile_king(unit_infile)
+ case default
+    stop 'invalid iextforce'
+ end select 
 
 end subroutine write_infile_force
 

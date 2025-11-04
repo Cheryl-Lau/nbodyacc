@@ -18,26 +18,26 @@ contains
 !-------------------------------------------------------------------
 ! Write the starting dumpfile 
 !-------------------------------------------------------------------
-subroutine write_first_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)
+subroutine write_first_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  integer, intent(in) :: nptmass 
  real,    intent(in) :: time 
  real,    intent(in) :: xyzhm_ptmass(:,:)
  real,    intent(in) :: vxyz_ptmass(:,:)
- real,    intent(in), optional :: massq_ptmass(:)
- integer :: rc,ip
+ real,    intent(in), optional :: sq_ptmass(:,:)
+ integer :: rc,i
 
  open(2010,file='ptmass_00000.tmp',iostat=rc,status='replace')
  if (rc /= 0) stop 'error writing first dump'
 
  write(2010,*) time
 
- binary: if (present(massq_ptmass)) then 
-    do ip = 1,nptmass 
-        write(2010,*) xyzhm_ptmass(:,ip), massq_ptmass(ip), vxyz_ptmass(:,ip)
+ binary: if (present(sq_ptmass)) then 
+    do i = 1,nptmass 
+        write(2010,*) xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  else 
-    do ip = 1,nptmass 
-        write(2010,*) xyzhm_ptmass(:,ip), vxyz_ptmass(:,ip)
+    do i = 1,nptmass 
+        write(2010,*) xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif binary 
 
@@ -50,14 +50,14 @@ end subroutine write_first_dump
 !-------------------------------------------------------------------
 ! Read a specified dumpfile 
 !-------------------------------------------------------------------
-subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)
+subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  character(len=*), intent(in) :: dumpfile
  integer, intent(out) :: nptmass 
  real,    intent(out) :: time 
  real,    intent(out) :: xyzhm_ptmass(:,:)
  real,    intent(out) :: vxyz_ptmass(:,:)
- real,    intent(out), optional :: massq_ptmass(:)
- integer :: ip,rc,nentry
+ real,    intent(out), optional :: sq_ptmass(:,:)
+ integer :: i,rc,nentry
  logical :: iex,binary
 
  inquire(file=trim(adjustl(dumpfile)),exist=iex)
@@ -80,14 +80,14 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass
  !- Read file 
  read(2011,*) time 
  binary = .false. 
- if (present(massq_ptmass)) then 
-    do ip = 1,nptmass 
-        read(2011,*) xyzhm_ptmass(:,ip), massq_ptmass(ip), vxyz_ptmass(:,ip)
+ if (present(sq_ptmass)) then 
+    do i = 1,nptmass 
+        read(2011,*) xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
     binary = .true. 
  else 
-    do ip = 1,nptmass 
-        read(2011,*) xyzhm_ptmass(:,ip), vxyz_ptmass(:,ip)
+    do i = 1,nptmass 
+        read(2011,*) xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif
 
@@ -152,13 +152,13 @@ end subroutine get_first_dump
 ! Wrapper to write dumpfiles
 !-------------------------------------------------------------------
 
-subroutine write_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)
+subroutine write_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  integer, intent(in) :: nptmass 
  real,    intent(in) :: time 
  real,    intent(in) :: xyzhm_ptmass(:,:)
  real,    intent(in) :: vxyz_ptmass(:,:)
- real,    intent(in), optional :: massq_ptmass(:)
- integer :: ip,rc
+ real,    intent(in), optional :: sq_ptmass(:,:)
+ integer :: i,rc
  character(len=16) :: dumpfilename
 
  iunit = iunit + 1 
@@ -169,13 +169,13 @@ subroutine write_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)
  if (rc /= 0) stop 'error writing dump'
 
  write(iunit,*) time 
- binary: if (present(massq_ptmass)) then 
-    do ip = 1,nptmass 
-        write(iunit,*) xyzhm_ptmass(:,ip), massq_ptmass(ip), vxyz_ptmass(:,ip)
+ binary: if (present(sq_ptmass)) then 
+    do i = 1,nptmass 
+        write(iunit,*) xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  else 
-    do ip = 1,nptmass 
-        write(iunit,*) xyzhm_ptmass(:,ip), vxyz_ptmass(:,ip)
+    do i = 1,nptmass 
+        write(iunit,*) xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif binary 
 

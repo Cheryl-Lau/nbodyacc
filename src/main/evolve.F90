@@ -9,21 +9,18 @@ module evolve
 
 contains
 
-subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,massq_ptmass)
- use accrete,  only:get_accretion_rad,accrete_gas
+subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  use step_RK4, only:step
  use timestep, only:dtmax,t_end,nout,constrain_dt
- use ptmass,   only:Lxyz_ptmass
- use energy,   only:get_tot_angmomen,get_tot_energy
+ use ptmass,   only:get_accretion_rad,accrete_gas
 #ifdef BINARY
- use ptmass,   only:sep_ptmass,Lspin_ptmass,update_sep
+ use ptmass,   only:Lspin_ptmass,update_sep
 #endif 
  real,    intent(in)    :: t_init
  integer, intent(inout) :: nptmass 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: vxyz_ptmass(:,:)
- real,    intent(inout) :: fxyz_ptmass(:,:)
- real,    intent(inout), optional :: massq_ptmass(:)
+ real,    intent(inout), optional :: sq_ptmass(:,:)
  integer :: istep,iout
  real    :: t,dt,ekin,epot 
 
@@ -35,22 +32,21 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,massq_ptmass
 
  evol_loop: do while (t <= t_end)
 
-    call step(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,dt) 
+    !--RK4 integrator 
+    call step(nptmass,xyzhm_ptmass,vxyz_ptmass,dt) 
 
-    call get_tot_energy(nptmass,xyzhm_ptmass,vxyz_ptmass,ekin,epot)
-    call get_tot_angmomen(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_ptmass)
-
+    !--Accrete and update particles 
     call get_accretion_rad()
     call accrete_gas()
 
 #ifdef BINARY
-    call update_sep(nptmass,massq_ptmass)
+    call update_sep(nptmass,sq_ptmass)
 #endif 
 
-    !- Write outputs 
+    !--Write outputs 
     if (iout == nout) then 
 #ifdef BINARY
-       call write_dump(t,nptmass,xyzhm_ptmass,vxyz_ptmass,massq_ptmass)
+       call write_dump(t,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
 #else 
        call write_dump(t,nptmass,xyzhm_ptmass,vxyz_ptmass)
 #endif 
@@ -58,14 +54,14 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,massq_ptmass
     endif 
     call write_evfile(t,ekin,epot)
 
-    !- Control timestep for next iteration 
+    !--Control timestep for next iteration 
     call constrain_dt(nptmass,xyzhm_ptmass,vxyz_ptmass,dt)
     t = t + dt
 
 
     iout = iout + 1
     istep = istep + 1 
-    if (mod(istep,nint(t_end/dtmax)/10) == 0) print*,'We are ',nint(t/t_end*100.),'% done'
+    if (mod(istep,nint(t_end/dtmax)/10) == 0) print*,nint(t/t_end*100.),'% done'
 
  enddo evol_loop
 
