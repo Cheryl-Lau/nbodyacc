@@ -41,14 +41,23 @@ subroutine get_energies(nptmass,xyzhm_ptmass,vxyz_ptmass,ekin,epot,etot)
 
 end subroutine get_energies
 
-subroutine get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass,jxyz,jspin)
+
+subroutine get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass,jxyz,jspin,jtot)
+ use ptmass, only:compute_Lxyz,compute_Lspin 
  integer, intent(in)  :: nptmass 
  real,    intent(in)  :: xyzhm_ptmass(:,:)
  real,    intent(in)  :: vxyz_ptmass(:,:)
  real,    intent(in),  optional :: sq_ptmass(:,:)
  real,    intent(out) :: jxyz(3)
  real,    intent(out), optional :: jspin(3)
+ real,    intent(out) :: jtot(3)
+ real    :: Lxyz_tot(3),Lspin_tot(3)
 
+ call compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_tot,jxyz)
+
+ binary: if (present(sq_ptmass)) then 
+    call compute_Lspin(nptmass,xyzhm_ptmass,sq_ptmass,Lspin_tot,jspin)
+ endif binary 
 
 end subroutine get_angmom
 

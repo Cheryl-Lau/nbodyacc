@@ -5,7 +5,7 @@ module timestep
  public :: constrain_dt 
  public :: read_infile_timestep,write_infile_timestep
  
- integer, public :: nout = 100    ! write dump every <nout> dt
+ integer, public :: nout = 1e4     ! write dump every <nout> dt
  real,    public :: dtmax  = 1d-3
  real,    public :: t_end  = 1d2
  real,    public :: t_init = 0.d0

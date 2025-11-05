@@ -9,6 +9,7 @@ program nbodyacc
 #endif 
  use ptmass,   only:allocate_ptmass,deallocate_ptmass
  use timestep, only:t_init
+ use units,    only:utime,udist,umass,read_units,set_units
  use readwrite_infile, only:read_infile
  use readwrite_dump,   only:get_first_dump,read_dump,restart_evfile
 
@@ -27,6 +28,9 @@ program nbodyacc
  call restart_evfile
 
  call read_infile
+
+ call read_units  ! gets utime udist umass from setup 
+ call set_units(udist,umass,utime)
 
  call get_first_dump(starting_dump)
 

@@ -17,7 +17,8 @@ subroutine init(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  real,    intent(inout) :: fxyz_ptmass(:,:)
  real,    intent(inout), optional :: sq_ptmass(:,:)
 
- if (iextforce == iext_king) call cluster_profile
+ if (iextforce == iext_king) call cluster_profile 
+
 
 end subroutine init
 

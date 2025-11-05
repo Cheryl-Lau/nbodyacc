@@ -59,8 +59,8 @@ subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
     xyzhm_ptmass(4,i) = 5.d0*au/udist           ! accretion radius 
     call gen_random_mass(2.d0,5.d0,mass)
     xyzhm_ptmass(5,i) = mass                    ! mass
-    sq_ptmass(1,1)      = 0.d0                  ! (single star)
-    sq_ptmass(2,1)      = 0.d0                  ! (single star)
+    sq_ptmass(1,i)      = 0.d0                  ! (single star)
+    sq_ptmass(2,i)      = 0.d0                  ! (single star)
  enddo 
 
  !--Adding turbulence

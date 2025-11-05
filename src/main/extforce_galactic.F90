@@ -12,7 +12,7 @@ module extforce_galactic
 
  private 
 
- namelist /galactic_params/ Rc,vc,q1,q2
+ namelist /extforce_galacticmodel_params/ Rc,vc,q1,q2
 
 contains 
 
@@ -45,7 +45,7 @@ subroutine read_infile_galactic(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc
 
- read(unit_infile,nml=galactic_params,iostat=rc)
+ read(unit_infile,nml=extforce_galacticmodel_params,iostat=rc)
  if (rc /= 0) stop 'cannot read galactic options'
 
 end subroutine read_infile_galactic
@@ -55,7 +55,7 @@ subroutine write_infile_galactic(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc
 
- write(unit_infile,nml=galactic_params,iostat=rc)
+ write(unit_infile,nml=extforce_galacticmodel_params,iostat=rc)
  if (rc /= 0) stop 'cannot write galactic options'
 
 end subroutine write_infile_galactic

@@ -26,11 +26,10 @@ module ptmass
 contains 
 
 
-subroutine compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_ptmass,jxyz_ptmass,Lxyz_tot,jxyz_tot)
+subroutine compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_tot,jxyz_tot)
  integer, intent(in)  :: nptmass 
  real,    intent(in)  :: xyzhm_ptmass(:,:)
  real,    intent(in)  :: vxyz_ptmass(:,:)
- real,    intent(out) :: Lxyz_ptmass(:,:),jxyz_ptmass(:,:)
  real,    intent(out) :: Lxyz_tot(3),jxyz_tot(3)   ! summed over all ptmass 
  integer :: i
  real    :: m,r(3),v(3),r_cross_v(3)
@@ -54,11 +53,10 @@ subroutine compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_ptmass,jxyz_ptmass
 end subroutine compute_Lxyz
 
 
-subroutine compute_Lspin(nptmass,xyzhm_ptmass,sq_ptmass,Lspin_ptmass,jspin_ptmass,Lspin_tot,jspin_tot)
+subroutine compute_Lspin(nptmass,xyzhm_ptmass,sq_ptmass,Lspin_tot,jspin_tot)
  integer, intent(in)  :: nptmass 
  real,    intent(in)  :: xyzhm_ptmass(:,:)
  real,    intent(in)  :: sq_ptmass(:,:)
- real,    intent(out) :: Lspin_ptmass(:,:),jspin_ptmass(:,:)
  real,    intent(out) :: Lspin_tot(3),jspin_tot(3)
  integer :: i
  real    :: mass,sep,q,Lspinz,jspinz 

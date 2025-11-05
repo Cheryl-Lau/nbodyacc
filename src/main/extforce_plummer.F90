@@ -10,7 +10,7 @@ module extforce_plummer
 
  private 
 
- namelist /plummer_params/ Mclust,Rcore 
+ namelist /extforce_plummermodel_params/ Mclust,Rcore 
 
 contains 
 
@@ -41,7 +41,7 @@ subroutine read_infile_plummer(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc
 
- read(unit_infile,nml=plummer_params,iostat=rc)
+ read(unit_infile,nml=extforce_plummermodel_params,iostat=rc)
  if (rc /= 0) stop 'cannot read plummer options'
 
 end subroutine read_infile_plummer
@@ -51,7 +51,7 @@ subroutine write_infile_plummer(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc
 
- write(unit_infile,nml=plummer_params,iostat=rc)
+ write(unit_infile,nml=extforce_plummermodel_params,iostat=rc)
  if (rc /= 0) stop 'cannot write plummer options'
 
 end subroutine write_infile_plummer

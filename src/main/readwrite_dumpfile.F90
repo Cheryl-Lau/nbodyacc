@@ -29,15 +29,18 @@ subroutine write_first_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  open(2010,file='ptmass_00000.tmp',iostat=rc,status='replace')
  if (rc /= 0) stop 'error writing first dump'
 
- write(2010,*) time
+ write(2010,'(A20)') 'time'
+ write(2010,'(E20.10)') time
 
  binary: if (present(sq_ptmass)) then 
+    write(2010,'(10A20)') 'x','y','z','r_acc','mass','sep','q','vx','vy','vz'
     do i = 1,nptmass 
-        write(2010,*) xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
+        write(2010,'(10E20.10)') xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  else 
+    write(2010,'(8A20)') 'x','y','z','r_acc','mass','vx','vy','vz'
     do i = 1,nptmass 
-        write(2010,*) xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
+        write(2010,'(8E20.10)') xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif binary 
 
@@ -73,25 +76,29 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
     if (rc < 0) exit 
     nentry = nentry + 1 
  enddo 
- nptmass = nentry - 1  ! exclude the line for time
+ nptmass = nentry - 3   ! exclude the line for time and headings 
 
  rewind(2011)
 
  !--Read file 
- read(2011,*) time 
+ read(2011,*) 
+ read(2011,'(A20)') time 
+ read(2011,*) 
+
  binary = .false. 
  if (present(sq_ptmass)) then 
     do i = 1,nptmass 
-        read(2011,*) xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
+        read(2011,'(10E20.10)') xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
     binary = .true. 
  else 
     do i = 1,nptmass 
-        read(2011,*) xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
+        read(2011,'(8E20.10)') xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif
 
  close(2011)
+
 
 #ifdef BINARY
  print*,'BINARY ON'
@@ -127,7 +134,7 @@ subroutine get_first_dump(starting_dump)
     endif
  enddo
  lastfile = trim(adjustl(filename_search))
- print*,'Newest dumpfile found ',lastfile
+ print*,'Newest dumpfile found: ',lastfile
  
  if (lastfile_found .and. start_dump /= lastfile) then 
     print*,'ARE YOU SURE YOU DO NOT WANT TO START FROM ',lastfile,' ?'
@@ -168,14 +175,18 @@ subroutine write_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  open(iunit,file=dumpfilename,iostat=rc,status='replace')
  if (rc /= 0) stop 'error writing dump'
 
- write(iunit,*) time 
+ write(iunit,'(A20)') 'time'
+ write(iunit,'(E20.10)') time 
+
  binary: if (present(sq_ptmass)) then 
+    write(iunit,'(10A20)') 'x','y','z','r_acc','mass','sep','q','vx','vy','vz'
     do i = 1,nptmass 
-        write(iunit,*) xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
+        write(iunit,'(10E20.10)') xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  else 
+    write(iunit,'(8A20)') 'x','y','z','r_acc','mass','vx','vy','vz'
     do i = 1,nptmass 
-        write(iunit,*) xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
+        write(iunit,'(8E20.10)') xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif binary 
 
@@ -204,21 +215,22 @@ end subroutine gen_filename
 subroutine restart_evfile()
 
  open(2040,file='ptmass.ev',status='replace')
- write(2040,'(10A20)') 'time','ekin','epot','etot','jx','jy','jz','jbx','jby','jbz'
+ write(2040,'(13A20)') 'time','ekin','epot','etot','jx','jy','jz','jbx','jby','jbz','jtotx','jtoty','jtotz'
  close(2040)
 
 end subroutine restart_evfile
 
 
 
-subroutine write_evfile(time,ekin,epot,etot,jxyz,jspin)
+subroutine write_evfile(time,ekin,epot,etot,jxyz,jspin,jtot)
  real, intent(in) :: time,ekin,epot,etot 
  real, intent(in) :: jxyz(3)
  real, intent(in), optional :: jspin(3)
+ real, intent(in), optional :: jtot(3)
 
  open(2040, file='ptmass.ev',status='old',position='append')
  binary: if (present(jspin)) then 
-    write(2040,'(10E20.10)') time,ekin,epot,etot,jxyz(1:3),jspin(1:3)
+    write(2040,'(13E20.10)') time,ekin,epot,etot,jxyz(1:3),jspin(1:3),jtot(1:3)
  else 
     write(2040,'(7E20.10)')  time,ekin,epot,etot,jxyz(1:3)
  endif binary 

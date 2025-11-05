@@ -21,7 +21,7 @@ module extforce_king
 
  logical :: print_profile = .true. 
 
- namelist /king_params/ Mclust,Rcore,sigma 
+ namelist /extforce_kingmodel_params/ Mclust_msun,Rcore_pc,sigma_cgs 
 
 contains 
 
@@ -97,7 +97,7 @@ end function interp_from_profile
 ! Produces tabulated density, potential and force as functions of R
 !+
 !-----------------------------------------------------------------
-subroutine cluster_profile()
+subroutine cluster_profile
  use units,   only:unit_density,unit_velocity,utime,udist,umass 
  use physcon, only:pc,solarm
  integer :: iR,io_clusterfile
@@ -273,7 +273,7 @@ subroutine read_infile_king(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc
 
- read(unit_infile,nml=king_params,iostat=rc)
+ read(unit_infile,nml=extforce_kingmodel_params,iostat=rc)
  if (rc /= 0) stop 'cannot read king options'
 
 end subroutine read_infile_king
@@ -283,7 +283,7 @@ subroutine write_infile_king(unit_infile)
  integer, intent(in) :: unit_infile
  integer :: rc
 
- write(unit_infile,nml=king_params,iostat=rc)
+ write(unit_infile,nml=extforce_kingmodel_params,iostat=rc)
  if (rc /= 0) stop 'cannot write king options'
 
 end subroutine write_infile_king

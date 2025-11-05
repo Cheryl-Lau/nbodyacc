@@ -2,6 +2,7 @@
 program nbodyaccsetup 
 
  use setup,  only:set_ptmass
+ use units,  only:utime,udist,umass,write_units
  use ptmass, only:nptmass,xyzhm_ptmass,vxyz_ptmass
 #ifdef BINARY
  use ptmass, only:sq_ptmass
@@ -27,5 +28,7 @@ program nbodyaccsetup
  call deallocate_ptmass
 
  call write_infile ! with default settings 
+
+ call write_units(utime,udist,umass)  ! from setup 
 
 end program

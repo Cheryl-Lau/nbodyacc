@@ -2,10 +2,12 @@
 module units 
 
  implicit none 
- public :: set_units
+ public :: set_units,write_units,read_units 
  real, public :: udist = 1.d0, umass = 1.d0, utime = 1.d0
  real, public :: unit_velocity,unit_density,unit_pressure,unit_ergg,unit_energ
  private
+
+ namelist /unit_settings/ utime,udist,umass
 
 contains 
 
@@ -65,7 +67,7 @@ subroutine set_units(dist,mass,time,G,c)
     endif
  endif
 
- ! derived units 
+ !--derived units 
  unit_velocity = udist/utime
  unit_density  = umass/udist**3
  unit_pressure = umass/(udist*utime**2)
@@ -73,5 +75,32 @@ subroutine set_units(dist,mass,time,G,c)
  unit_energ    = umass*unit_ergg
 
 end subroutine set_units
+
+
+
+subroutine read_units
+ integer :: io,rc
+
+ inquire(file='units.in',iostat=io)
+ if (io /= 0) stop 'no units files found'
+
+ open(3000,file='setunits.in',status='old')
+ read(3000,nml=unit_settings,iostat=rc)
+ if (rc /= 0) stop 'cannot read units options'
+ close(3000)
+
+end subroutine read_units 
+
+
+subroutine write_units(utime,udist,umass)
+ real,   intent(in) :: utime,udist,umass
+ integer :: rc 
+ 
+ open(3000,file='setunits.in',status='replace')
+ write(3000,nml=unit_settings,iostat=rc)
+ if (rc /= 0) stop 'cannot write units options'
+ close(3000)
+
+end subroutine write_units 
 
 end module units 

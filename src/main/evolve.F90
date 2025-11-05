@@ -23,7 +23,7 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  real,    intent(inout) :: vxyz_ptmass(:,:)
  real,    intent(inout), optional :: sq_ptmass(:,:)
  integer :: istep,iout
- real    :: t,dt,ekin,epot,etot,jspin(3),jxyz(3)
+ real    :: t,dt,ekin,epot,etot,jspin(3),jxyz(3),jtot(3)
 
 
  if (t_init > t_end) stop 't_end needs to be greater than t_init'
@@ -47,9 +47,9 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
     !--Compute energies and specific angular momentum 
     call get_energies(nptmass,xyzhm_ptmass,vxyz_ptmass,ekin,epot,etot)
 #ifdef BINARY
-    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass,jxyz,jspin)
+    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass,jxyz,jspin,jtot)
 #else 
-    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz)
+    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot)
 #endif 
 
     !--Write dumps
@@ -64,7 +64,7 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
 
     !--Write evol of energy/angmom 
 #ifdef BINARY
-    call write_evfile(t,ekin,epot,etot,jxyz,jspin)
+    call write_evfile(t,ekin,epot,etot,jxyz,jspin,jtot)
 #else 
     call write_evfile(t,ekin,epot,etot,jxyz)
 #endif 
