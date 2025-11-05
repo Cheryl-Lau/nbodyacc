@@ -5,9 +5,9 @@ module extforce_king
  public :: king_potential,cluster_profile
  public :: read_infile_king,write_infile_king
 
- real, public :: Mclust = 1d3 
- real, public :: Rcore  = 0.2 
- real, public :: sigma  = 0.3d2
+ real, public :: Mclust_msun = 1d3 
+ real, public :: Rcore_pc    = 0.2 
+ real, public :: sigma_cgs   = 2.3d5
 
 
  private 
@@ -17,8 +17,8 @@ module extforce_king
  integer :: nR 
  real    :: r_profile(nRmax),rho_profile(nRmax)
  real    :: phi_profile(nRmax),force_profile(nRmax)
- real    :: Rclust
- 
+ real    :: Rcore,Rclust,Mclust,sigma 
+
  logical :: print_profile = .true. 
 
  namelist /king_params/ Mclust,Rcore,sigma 
@@ -98,13 +98,19 @@ end function interp_from_profile
 !+
 !-----------------------------------------------------------------
 subroutine cluster_profile()
- use units,  only:unit_density,unit_velocity,utime,udist,umass 
+ use units,   only:unit_density,unit_velocity,utime,udist,umass 
+ use physcon, only:pc,solarm
  integer :: iR,io_clusterfile
  real    :: j,j2,k,ve2,R,dWdR,W,W0,dR,rhomin,phi,phi0,rho,dphidr,force
  real    :: dRmax_dW,dRmax_dR
  real    :: r_pc,rho_cgs,phi_cgs,force_cgs 
 
- print*,'Computing cluster profile with Mclust = ',Mclust,' solarm;'
+ print*,'Computing cluster profile with Mclust = ',Mclust_msun,' solarm;'
+
+ !--Convert to code units 
+ Mclust = Mclust_msun*solarm/umass 
+ Rcore  = Rcore_pc*pc/udist 
+ sigma  = sigma_cgs/unit_velocity 
 
  !--Use current Mclust to compute W0 with Plummer model
  phi0 = -Mclust/Rcore 
@@ -120,7 +126,7 @@ subroutine cluster_profile()
  R    = 1.d-3
  dWdR = tiny(dWdR) 
  W    = W0 
- dR   = 1.d-2  ! init
+ dR   = 1.d-2
 
  rhomin = 6.77d-23/unit_density
  phi = -1   ! dummy 
@@ -139,7 +145,7 @@ subroutine cluster_profile()
     call Euler(W,dWdR,W0,k,j,j2,dR,R,rho)
 
     !--Store results in code units 
-    if (iR > nRmax) call fatal('extern_starcluster','number of R entries exceeded limit')
+    if (iR > nRmax) stop 'number of R entries exceeded limit'
     if (iR > 0) then  ! to skip first entry 
        r_profile(iR)       = R*Rcore
        rho_profile(iR)     = rho
@@ -162,7 +168,7 @@ subroutine cluster_profile()
  !--Write profile to file for checking 
  if (print_profile) then 
     open(2050,file='cluster_profile.dat',status='replace',iostat=io_clusterfile)
-    if (io_clusterfile /= 0) call fatal('extern_starcluster','error opening cluster profile file')
+    if (io_clusterfile /= 0) stop 'error opening cluster profile file'
     write(2050,'(4A20)') 'r [pc]','rho [g/cm3]','potential [cm2/s2]','force [cm/s2]'
     do iR = 1,nR
        r_pc       = r_profile(iR)

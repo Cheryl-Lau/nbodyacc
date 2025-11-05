@@ -98,7 +98,7 @@ endif
 #
 # Main 
 #
-SOURCES= physcon.f90 units.f90 timestep.f90 energies.f90  \
+SOURCES= physcon.f90 units.f90 timestep.f90 energies.f90 \
          extforce_plummer.f90 extforce_galactic.f90 extforce_king.f90 forces.F90 step_RK4.F90 \
          ptmass.F90 readwrite_dumpfile.F90 readwrite_infile.f90 evolve.F90 initial.F90  
 
@@ -113,8 +113,10 @@ nbodyacc: $(OBJECTS) nbodyacc.o
 #
 # Setup 
 #
-SRCSETUP= physcon.f90 units.f90 timestep.f90 energies.f90 ptmass.F90 forces.F90 readwrite_dumpfile.f90 \
-         vel_turbcube.f90 transform_com.f90 random.f90 readwrite_infile.F90 ${SETUPFILE} 
+SRCSETUP= physcon.f90 units.f90 timestep.f90 energies.f90 ptmass.F90 \
+          extforce_plummer.f90 extforce_galactic.f90 extforce_king.f90 \
+          forces.F90 readwrite_dumpfile.f90 \
+          vel_turbcube.f90 transform_com.f90 random.f90 readwrite_infile.F90 ${SETUPFILE} 
 
 OBJSETUP1= $(SRCSETUP:.f90=.o)
 OBJSETUP= $(OBJSETUP1:.F90=.o) 

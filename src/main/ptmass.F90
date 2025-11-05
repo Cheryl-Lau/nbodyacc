@@ -4,6 +4,7 @@ module ptmass
 
  implicit none 
  public :: update_sep,accrete_gas,get_accretion_rad
+ public :: compute_Lxyz,compute_Lspin 
  public :: allocate_ptmass,deallocate_ptmass 
 
  integer, public :: maxptmass = 1e3
@@ -12,10 +13,12 @@ module ptmass
  real,    public, allocatable :: vxyz_ptmass(:,:)  ! velocity 
  real,    public, allocatable :: fxyz_ptmass(:,:)  ! forces   
  real,    public, allocatable :: poten_ptmass(:)   ! potentials 
- real,    public, allocatable :: Lxyz_ptmass(:,:)  ! total angular momentum in sim frame
+ real,    public, allocatable :: Lxyz_ptmass(:,:)  ! angular momentum in sim frame
+ real,    public, allocatable :: jxyz_ptmass(:,:)  ! specific angular momentum in sim frame 
 #ifdef BINARY
  real,    public, allocatable :: sq_ptmass(:,:)    ! separation and mass-ratio of binary pair 
- real,    public, allocatable :: Lspin_ptmass(:,:) ! angular momentum around COM of binary pair 
+ real,    public, allocatable :: Lspin_ptmass(:,:) ! angular momentum around COM of binary 
+ real,    public, allocatable :: jspin_ptmass(:,:) ! specific angular momentum around COM of binary
 #endif 
 
  private
@@ -23,45 +26,58 @@ module ptmass
 contains 
 
 
-subroutine compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_ptmass,Lxyz_tot)
+subroutine compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_ptmass,jxyz_ptmass,Lxyz_tot,jxyz_tot)
  integer, intent(in)  :: nptmass 
  real,    intent(in)  :: xyzhm_ptmass(:,:)
  real,    intent(in)  :: vxyz_ptmass(:,:)
- real,    intent(out) :: Lxyz_ptmass(:,:)
- real,    intent(out) :: Lxyz_tot(3)
+ real,    intent(out) :: Lxyz_ptmass(:,:),jxyz_ptmass(:,:)
+ real,    intent(out) :: Lxyz_tot(3),jxyz_tot(3)   ! summed over all ptmass 
  integer :: i
  real    :: m,r(3),v(3),r_cross_v(3)
 
- Lxyz_tot = (/ 0.d0, 0.d0, 0.d0 /)
+ Lxyz_tot = 0.d0 
+ jxyz_tot = 0.d0 
+
  do i = 1,nptmass
     r = xyzhm_ptmass(1:3,i)
     v = vxyz_ptmass(1:3,i)
     m = xyzhm_ptmass(5,i)
     r_cross_v = cross_product(r,v)
+
     Lxyz_ptmass(1:3,i) = m*r_cross_v
     Lxyz_tot = Lxyz_tot + Lxyz_ptmass(1:3,i)
+
+    jxyz_ptmass(1:3,i) = r_cross_v
+    jxyz_tot = jxyz_tot + jxyz_ptmass(1:3,i)
  enddo 
 
 end subroutine compute_Lxyz
 
 
-subroutine compute_Lspin(nptmass,xyzhm_ptmass,sq_ptmass,Lspin_ptmass,Lspin_tot)
+subroutine compute_Lspin(nptmass,xyzhm_ptmass,sq_ptmass,Lspin_ptmass,jspin_ptmass,Lspin_tot,jspin_tot)
  integer, intent(in)  :: nptmass 
  real,    intent(in)  :: xyzhm_ptmass(:,:)
  real,    intent(in)  :: sq_ptmass(:,:)
- real,    intent(out) :: Lspin_ptmass(:,:)
- real,    intent(out) :: Lspin_tot(3)
+ real,    intent(out) :: Lspin_ptmass(:,:),jspin_ptmass(:,:)
+ real,    intent(out) :: Lspin_tot(3),jspin_tot(3)
  integer :: i
- real    :: mass,sep,q,Lspinz
+ real    :: mass,sep,q,Lspinz,jspinz 
 
- Lspin_tot = (/ 0.d0, 0.d0, 0.d0 /)
+ Lspin_tot = 0.d0 
+ jspin_tot = 0.d0 
+
  do i = 1,nptmass
      mass = xyzhm_ptmass(5,i)
      sep = sq_ptmass(1,i)
      q = sq_ptmass(2,i)
+
      Lspinz = 2.5d-1*sqrt(mass**3*sep) * q/(1.d0+q)**2
      Lspin_ptmass(1:3,i) = (/ 0.d0, 0.d0, Lspinz /)
      Lspin_tot = Lspin_tot + Lspin_ptmass(1:3,i)
+
+     jspinz = Lspinz/mass 
+     jspin_ptmass(1:3,i) = (/ 0.d0, 0.d0, jspinz /)
+     jspin_tot = jspin_tot + jspin_ptmass(1:3,i)
  enddo 
 
 end subroutine compute_Lspin
@@ -117,9 +133,11 @@ subroutine allocate_ptmass
  allocate(fxyz_ptmass(3,maxptmass))
  allocate(poten_ptmass(maxptmass))
  allocate(Lxyz_ptmass(3,maxptmass))
+ allocate(jxyz_ptmass(3,maxptmass))
 #ifdef BINARY
  allocate(sq_ptmass(2,maxptmass))
  allocate(Lspin_ptmass(3,maxptmass))
+ allocate(jspin_ptmass(3,maxptmass))
 #endif 
 
 end subroutine allocate_ptmass
@@ -133,9 +151,11 @@ subroutine deallocate_ptmass
  deallocate(fxyz_ptmass)
  deallocate(poten_ptmass)
  deallocate(Lxyz_ptmass)
+ deallocate(jxyz_ptmass)
 #ifdef BINARY
  deallocate(sq_ptmass)
  deallocate(Lspin_ptmass)
+ deallocate(jspin_ptmass)
 #endif 
 
 end subroutine deallocate_ptmass

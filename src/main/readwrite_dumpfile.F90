@@ -66,7 +66,7 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  open(2011,file=trim(adjustl(dumpfile)),iostat=rc,status='old')
  if (rc /= 0) stop 'error reading dump'
 
- !- Count number of lines to find out nptmass 
+ !--Count number of lines to find out nptmass 
  nentry = 0
  do 
     read(2011,*,iostat=rc)
@@ -77,7 +77,7 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
 
  rewind(2011)
 
- !- Read file 
+ !--Read file 
  read(2011,*) time 
  binary = .false. 
  if (present(sq_ptmass)) then 
@@ -94,10 +94,10 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  close(2011)
 
 #ifdef BINARY
- print*,'BINARY on'
+ print*,'BINARY ON'
  if (.not.binary) stop 'Please re-compile with BINARY=no'
 #else 
- print*,'BINARY off'
+ print*,'BINARY OFF'
  if (binary) stop 'Please re-compile with BINARY=yes'
 #endif 
 
@@ -112,7 +112,7 @@ subroutine get_first_dump(starting_dump)
  logical :: lastfile_found,iexist
  character(len=16) :: filename_search,lastfile
 
- !- Check the last snapshot file saved
+ !--Check the last snapshot file saved
  ifile_search = 100
  lastfile_found = .false.
  do while (.not.lastfile_found)
@@ -204,17 +204,24 @@ end subroutine gen_filename
 subroutine restart_evfile()
 
  open(2040,file='ptmass.ev',status='replace')
- write(2040,*) 'time','ekin','epot'
+ write(2040,'(10A20)') 'time','ekin','epot','etot','jx','jy','jz','jbx','jby','jbz'
  close(2040)
 
 end subroutine restart_evfile
 
 
-subroutine write_evfile(time,ekin,epot)
- real, intent(in) :: time,ekin,epot
+
+subroutine write_evfile(time,ekin,epot,etot,jxyz,jspin)
+ real, intent(in) :: time,ekin,epot,etot 
+ real, intent(in) :: jxyz(3)
+ real, intent(in), optional :: jspin(3)
 
  open(2040, file='ptmass.ev',status='old',position='append')
- write(2040,*) time,ekin,epot
+ binary: if (present(jspin)) then 
+    write(2040,'(10E20.10)') time,ekin,epot,etot,jxyz(1:3),jspin(1:3)
+ else 
+    write(2040,'(7E20.10)')  time,ekin,epot,etot,jxyz(1:3)
+ endif binary 
  close(2040)
 
 end subroutine write_evfile

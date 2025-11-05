@@ -1,10 +1,6 @@
 
 module force 
 
- use extforce_plummer,  only:plummer_potential,read_infile_plummer,write_infile_plummer
- use extforce_galactic, only:galactic_potential,read_infile_galactic,write_infile_galactic
- use extforce_king,     only:king_potential,read_infile_king,write_infile_king 
-
  implicit none 
  public :: compute_forces
  public :: read_infile_force,write_infile_force
@@ -76,7 +72,7 @@ subroutine self_grav(nptmass,xyzhm_ptmass,fxyz_ptmass,poten_ptmass)
             mj   = xyzhm_ptmass(5,j)
             f_ij = -mj*r_ij/absr**3    ! per mass(i); G=1 in code units 
             fsum = fsum + f_ij 
-            phi  = -mi*mj/absr
+            phi  = -mi/absr
             phisum = phisum + phi 
         endif 
     enddo over_neigh 
@@ -90,6 +86,9 @@ end subroutine self_grav
 ! External potential acting on a given ptmass
 !
 subroutine external_force(xi,yi,zi,extfxi,extfyi,extfzi,phi) 
+ use extforce_plummer,  only:plummer_potential
+ use extforce_galactic, only:galactic_potential
+ use extforce_king,     only:king_potential
  real, intent(in)  :: xi,yi,zi
  real, intent(out) :: extfxi,extfyi,extfzi,phi
 
@@ -116,6 +115,9 @@ end subroutine external_force
 ! Write module options to input file
 !--------------------------------------------------------------
 subroutine read_infile_force(unit_infile)
+ use extforce_plummer,  only:read_infile_plummer
+ use extforce_galactic, only:read_infile_galactic
+ use extforce_king,     only:read_infile_king
  integer, intent(in) :: unit_infile
  integer :: rc
 
@@ -137,6 +139,9 @@ end subroutine read_infile_force
 
 
 subroutine write_infile_force(unit_infile)
+ use extforce_plummer,  only:write_infile_plummer
+ use extforce_galactic, only:write_infile_galactic
+ use extforce_king,     only:write_infile_king 
  integer, intent(in) :: unit_infile
  integer :: rc
 
