@@ -214,7 +214,7 @@ end subroutine gen_filename
 !-------------------------------------------------------------------
 subroutine restart_evfile()
 
- open(2040,file='ptmass.ev',status='replace')
+ open(2040,file='ptmass_ej.ev',status='replace')
  write(2040,'(13A20)') 'time','ekin','epot','etot','jx','jy','jz','jbx','jby','jbz','jtotx','jtoty','jtotz'
  close(2040)
 
@@ -228,7 +228,7 @@ subroutine write_evfile(time,ekin,epot,etot,jxyz,jspin,jtot)
  real, intent(in), optional :: jspin(3)
  real, intent(in), optional :: jtot(3)
 
- open(2040, file='ptmass.ev',status='old',position='append')
+ open(2040, file='ptmass_ej.ev',status='old',position='append')
  binary: if (present(jspin)) then 
     write(2040,'(13E20.10)') time,ekin,epot,etot,jxyz(1:3),jspin(1:3),jtot(1:3)
  else 

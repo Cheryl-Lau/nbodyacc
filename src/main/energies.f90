@@ -57,6 +57,7 @@ subroutine get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass,jxyz,jspin,jtot
 
  binary: if (present(sq_ptmass)) then 
     call compute_Lspin(nptmass,xyzhm_ptmass,sq_ptmass,Lspin_tot,jspin)
+    jtot = jxyz + jspin
  endif binary 
 
 end subroutine get_angmom
