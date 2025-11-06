@@ -5,23 +5,59 @@ module timestep
  public :: constrain_dt 
  public :: read_infile_timestep,write_infile_timestep
  
- integer, public :: nout = 1e4     ! write dump every <nout> dt
- real,    public :: dtmax  = 1d-3
- real,    public :: t_end  = 1d2
- real,    public :: t_init = 0.d0
+ integer, public :: nout    = 10      ! write dump every <nout> dtmax 
+ integer, public :: maxdump = 100     ! max number of dumpfiles 
+ real,    public :: dtmax   = 1.d-5   ! sim max timestep 
+ real,    public :: t_init  = 0.d0    ! sim start time 
+ real,    public :: t_end   = 1.d-2   ! sim end time 
+
+ integer, public :: nbinmax  = 30
+ real,    public :: alpha_dt = 1.d-3    ! timestep constraint param 
  
+
  private
- namelist /timestep_params/ dtmax,t_end,nout
+
+ namelist /timestep_params/ dtmax,t_end,nout,maxdump,alpha_dt
 
 contains 
 
-subroutine constrain_dt(nptmass,xyzhm_ptmass,vxyz_ptmass,dt)
- integer, intent(in) :: nptmass
- real,    intent(in) :: xyzhm_ptmass(:,:)
- real,    intent(in) :: vxyz_ptmass(:,:)
+subroutine constrain_dt(nptmass,vxyz_ptmass,fxyz_ptmass,nbin,dt)
+ integer, intent(in)    :: nptmass
+ real,    intent(in)    :: vxyz_ptmass(:,:)
+ real,    intent(in)    :: fxyz_ptmass(:,:)
  real,    intent(inout) :: dt
+ integer, intent(out)   :: nbin
+ integer :: i,j
+ real    :: vi(3),vj(3),fi(3),fj(3),v_over_f
+ real    :: dtfrac
+ 
+ dt = huge(dt)
+ do i = 1,nptmass
+    vi = vxyz_ptmass(1:3,i)
+    fi = fxyz_ptmass(1:3,i)
+    do j = 1,nptmass
+        vj = vxyz_ptmass(1:3,j)
+        fj = fxyz_ptmass(1:3,j)
+        v_over_f = mag(vi-vj)/mag(fi-fj)
+        dt = min(dt,v_over_f)
+    enddo 
+ enddo 
+ dt = alpha_dt * dt
+
+ dtfrac = dtmax/dt
+ nbin = int(log(dtfrac)/log(2.d0))
+ nbin = min(nbin,nbinmax)
+ nbin = max(nbin,0)
+
+ dt  = dtmax/(2**nbin)
 
 end subroutine constrain_dt
+
+
+real function mag(vec)
+ real, intent(in) :: vec(3)
+ mag = sqrt(vec(1)**2 + vec(2)**2 + vec(3)**2)
+end function mag
 
 
 !--------------------------------------------------------------

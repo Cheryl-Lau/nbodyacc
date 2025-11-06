@@ -9,7 +9,7 @@ module initial
 contains 
 
 subroutine init(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
- use force,         only:iextforce,iext_king
+ use force,         only:compute_forces,iextforce,iext_king
  use extforce_king, only:cluster_profile
  integer, intent(inout) :: nptmass 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
@@ -19,6 +19,7 @@ subroutine init(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
 
  if (iextforce == iext_king) call cluster_profile 
 
+ call compute_forces(nptmass,xyzhm_ptmass,fxyz_ptmass)
 
 end subroutine init
 

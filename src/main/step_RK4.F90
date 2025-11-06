@@ -11,12 +11,13 @@ contains
 !-------------------------------------------------------------------
 ! Fourth-order Runge-Kutta integrator 
 !-------------------------------------------------------------------
-subroutine step(nptmass,xyzhm,vxyz,dt)
+subroutine step(nptmass,xyzhm,vxyz,fxyz,dt)
  use force,    only:compute_forces
  integer, intent(in)    :: nptmass
  real,    intent(in)    :: dt
  real,    intent(inout) :: xyzhm(:,:) 
  real,    intent(inout) :: vxyz(:,:)  
+ real,    intent(out)   :: fxyz(:,:)
  integer :: i
  real    :: hdt 
  real    :: xyzhm1(5,nptmass),xyzhm2(5,nptmass),xyzhm3(5,nptmass)   ! dummy vars for intermediate steps 
@@ -45,10 +46,11 @@ subroutine step(nptmass,xyzhm,vxyz,dt)
 
  call compute_forces(nptmass,xyzhm3,fxyz3)
 
- !- Actual update 
+ !--Actual update 
  do i = 1,nptmass
     vxyz(:,i) = vxyz(:,i) + 1.d0/6.d0 * (fxyz0(:,i) + 2.d0*fxyz1(:,i) + 2.d0*fxyz2(:,i) + fxyz3(:,i)) * dt 
     xyzhm(1:3,i) = xyzhm(1:3,i) + 1.d0/6.d0 * (vxyz(:,i) + 2.d0*vxyz1(:,i) + 2.d0*vxyz2(:,i) + vxyz3(:,i)) * dt
+    fxyz(:,i) = 1.d0/6.d0 * (fxyz0(:,i) + 2.d0*fxyz1(:,i) + 2.d0*fxyz2(:,i) + fxyz3(:,i))  ! for dt 
  enddo 
 
 end subroutine step

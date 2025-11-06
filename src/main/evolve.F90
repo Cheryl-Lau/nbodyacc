@@ -9,9 +9,9 @@ module evolve
 
 contains
 
-subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
+subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  use step_RK4, only:step
- use timestep, only:dtmax,t_end,nout,constrain_dt
+ use timestep, only:dtmax,t_end,nout,maxdump,constrain_dt
  use energy,   only:get_energies,get_angmom
  use ptmass,   only:get_accretion_rad,accrete_gas
 #ifdef BINARY
@@ -21,28 +21,41 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  integer, intent(inout) :: nptmass 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: vxyz_ptmass(:,:)
+ real,    intent(inout) :: fxyz_ptmass(:,:)
  real,    intent(inout), optional :: sq_ptmass(:,:)
- integer :: istep,iout
- real    :: t,dt,ekin,epot,etot,jspin(3),jxyz(3),jtot(3)
+ integer :: iout,ndump,nbin
+ real    :: t,dt,t_substep,ekin,epot,etot,jspin(3),jxyz(3),jtot(3)
 
 
  if (t_init > t_end) stop 't_end needs to be greater than t_init'
- t  = t_init
- dt = dtmax
- iout = 0
- istep = 0
+ t     = t_init
+ dt    = dtmax
+ iout  = 0
+ ndump = 0 
 
- evol_loop: do while (t <= t_end)
+ evol_loop: do while (t <= t_end .and. ndump < maxdump)
 
-    !--RK4 integrator 
-    call step(nptmass,xyzhm_ptmass,vxyz_ptmass,dt) 
+    !--Control timestep 
+    call constrain_dt(nptmass,vxyz_ptmass,fxyz_ptmass,nbin,dt)
+    print*,'time = ',t,'; dt = ',dt,' ; nbin = ',nbin
 
-    !--Accrete and update particles 
-    call get_accretion_rad()
-    call accrete_gas()
+    t_substep = 0.d0 
+    substep: do while (t_substep <= dtmax+tiny(dtmax))
+
+       !--RK4 integrator 
+       call step(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,dt) 
+
+       !--Accrete and update particles 
+       call get_accretion_rad()
+       call accrete_gas()
 #ifdef BINARY
-    call update_sep(nptmass,sq_ptmass)
+       call update_sep(nptmass,sq_ptmass)
 #endif 
+
+       t = t + dt
+       t_substep = t_substep + dt 
+
+    enddo substep 
 
     !--Compute energies and specific angular momentum 
     call get_energies(nptmass,xyzhm_ptmass,vxyz_ptmass,ekin,epot,etot)
@@ -52,34 +65,31 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
     call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot)
 #endif 
 
-    !--Write dumps
-    if (iout == nout) then 
-#ifdef BINARY
-       call write_dump(t,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
-#else 
-       call write_dump(t,nptmass,xyzhm_ptmass,vxyz_ptmass)
-#endif 
-       iout = 0
-    endif 
-
-    !--Write evol of energy/angmom 
+    !--Write total energy/angmom 
 #ifdef BINARY
     call write_evfile(t,ekin,epot,etot,jxyz,jspin,jtot)
 #else 
     call write_evfile(t,ekin,epot,etot,jxyz)
 #endif 
 
-    !--Control timestep for next iteration 
-    call constrain_dt(nptmass,xyzhm_ptmass,vxyz_ptmass,dt)
-    t = t + dt
-
+    !--Write dump every <nout> dtmax 
+    if (iout == nout) then 
+#ifdef BINARY
+       call write_dump(t,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
+#else 
+       call write_dump(t,nptmass,xyzhm_ptmass,vxyz_ptmass)
+#endif 
+       iout  = 0
+       ndump = ndump + 1 
+    endif
     iout = iout + 1
-    istep = istep + 1 
-    if (mod(istep,nint(t_end/dtmax)/10) == 0) print*,nint(t/t_end*100.),'% done'
 
  enddo evol_loop
 
-end subroutine evol 
+ print*,'Run completed'
+ if (t < t_end)       print*,'Number of dumps reached ',ndump,'/',maxdump 
+ if (ndump < maxdump) print*,'Time reached specified t_end: ',t,'/',t_end 
 
+end subroutine evol 
 
 end module evolve 

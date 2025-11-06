@@ -23,7 +23,7 @@ subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  real,    intent(inout) :: vxyz_ptmass(:,:)
  real,    intent(inout) :: sq_ptmass(:,:)
  integer :: i
- real    :: Rcore_pc,Rcore,Mclust_solarm,Mclust,angvel_cgs,angvel
+ real    :: rsphere_pc,rsphere,angvel_cgs,angvel
  real    :: rms_mach,boxsize,cs_cgs,cs,x,y,z,mass 
 
  !--Define unit system in sim
@@ -33,17 +33,15 @@ subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
 
  !--Inputs 
  nptmass       = 30        ! Number of stars 
- Rcore_pc      = 0.2       ! Core radius [pc]
- Mclust_solarm = 1.d3      ! Cluster total mass [msun]
+ rsphere_pc    = 0.2       ! Sphere radius [pc]
  angvel_cgs    = 3.d-14    ! Rotation angular vxyzocity [rad/s]
  rms_mach      = 10.       ! Turbulence Mach number 
  cs_cgs        = 2.19d4    ! Sound speed in cm/s
 
  !--Convert to code units 
- Rcore  = Rcore_pc*pc/udist 
- Mclust = Mclust_solarm*solarm/umass
- angvel = angvel_cgs/unit_velocity
- cs     = cs_cgs/unit_velocity 
+ rsphere = rsphere_pc*pc/udist 
+ angvel  = angvel_cgs/unit_velocity
+ cs      = cs_cgs/unit_velocity 
 
  !--Set particle properties 
  ! [Central binary]
@@ -54,17 +52,17 @@ subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  sq_ptmass(2,1)      = 1.d0                     ! mass ratio q
  ! [Neighbouring stars]
  do i = 2,nptmass
-    call gen_random_pos(Rcore,x,y,z)
+    call gen_random_pos(rsphere,x,y,z)
     xyzhm_ptmass(1:3,i) = (/ x, y, z /)         ! position
-    xyzhm_ptmass(4,i) = 5.d0*au/udist           ! accretion radius 
+    xyzhm_ptmass(4,i)   = 5.d0*au/udist         ! accretion radius 
     call gen_random_mass(2.d0,5.d0,mass)
-    xyzhm_ptmass(5,i) = mass                    ! mass
+    xyzhm_ptmass(5,i)   = mass                  ! mass
     sq_ptmass(1,i)      = 0.d0                  ! (single star)
     sq_ptmass(2,i)      = 0.d0                  ! (single star)
  enddo 
 
  !--Adding turbulence
- boxsize = Rcore 
+ boxsize = rsphere
  call map_turbvel(boxsize,nptmass,xyzhm_ptmass,vxyz_ptmass,cs,rms_mach)
 
  !--Adding rotation 

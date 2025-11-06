@@ -36,7 +36,7 @@ subroutine get_energies(nptmass,xyzhm_ptmass,vxyz_ptmass,ekin,epot,etot)
     epot = epot + mi*phi 
  enddo 
 
- !--Total energies 
+ !--Total energy 
  etot = ekin + epot 
 
 end subroutine get_energies
@@ -48,9 +48,8 @@ subroutine get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass,jxyz,jspin,jtot
  real,    intent(in)  :: xyzhm_ptmass(:,:)
  real,    intent(in)  :: vxyz_ptmass(:,:)
  real,    intent(in),  optional :: sq_ptmass(:,:)
- real,    intent(out) :: jxyz(3)
  real,    intent(out), optional :: jspin(3)
- real,    intent(out) :: jtot(3)
+ real,    intent(out) :: jxyz(3),jtot(3)
  real    :: Lxyz_tot(3),Lspin_tot(3)
 
  call compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_tot,jxyz)
