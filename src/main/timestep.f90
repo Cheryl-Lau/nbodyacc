@@ -5,11 +5,11 @@ module timestep
  public :: constrain_dt 
  public :: read_infile_timestep,write_infile_timestep
  
- integer, public :: nout    = 100     ! write dump every <nout> dtmax 
- integer, public :: maxdump = 100     ! max number of dumpfiles 
- real,    public :: dtmax   = 1.d-6   ! sim max timestep 
+ integer, public :: nout    = 10      ! write dump every <nout> dtmax 
+ integer, public :: maxdump = 300     ! max number of dumpfiles 
+ real,    public :: dtmax   = 1.d-5   ! sim max timestep 
  real,    public :: t_init  = 0.d0    ! sim start time 
- real,    public :: t_end   = 1.d-2   ! sim end time 
+ real,    public :: t_end   = 3.d-2   ! sim end time 
 
  integer, public :: nbinmax  = 20
  real,    public :: alpha_dt = 1.d-4    ! timestep constraint param 
