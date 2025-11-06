@@ -59,21 +59,32 @@ subroutine self_grav(nptmass,xyzhm_ptmass,fxyz_ptmass,poten_ptmass)
  real,    intent(in)    :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: fxyz_ptmass(:,:),poten_ptmass(:)
  integer :: i,j
- real    :: r_ij(3),fsum(3),f_ij(3),absr,mi,mj,phi,phisum
+ real    :: r_ij(3),fsum(3),f_ij(3),absr,mi,mj,phi,phisum,hi,hj,hsoft 
 
  do i = 1,nptmass
     fsum   = 0.d0 
     phisum = 0.d0 
     mi     = xyzhm_ptmass(5,i)
+    hi     = xyzhm_ptmass(4,i)
     over_neigh: do j = 1,nptmass
         if (i /= j) then 
-            r_ij = xyzhm_ptmass(1:3,i) - xyzhm_ptmass(1:3,j)
-            absr = sqrt(dot_product(r_ij,r_ij))
-            mj   = xyzhm_ptmass(5,j)
-            f_ij = -mj*r_ij/absr**3    ! per mass(i); G=1 in code units 
-            fsum = fsum + f_ij 
-            phi  = -mi/absr
-            phisum = phisum + phi 
+            mj    = xyzhm_ptmass(5,j)
+            r_ij  = xyzhm_ptmass(1:3,i) - xyzhm_ptmass(1:3,j)
+            absr  = sqrt(dot_product(r_ij,r_ij))
+            hj    = xyzhm_ptmass(4,j)
+            hsoft = 2.d0*max(hi,hj)
+
+            softening: if (absr < hsoft) then 
+               f_ij = -mj*r_ij/(absr+hsoft)**3
+               fsum = fsum + f_ij 
+               phi  = -mi/(absr+hsoft)
+               phisum = phisum + phi 
+            else 
+               f_ij = -mj*r_ij/absr**3    ! per mass(i); G=1 in code units 
+               fsum = fsum + f_ij 
+               phi  = -mi/absr
+               phisum = phisum + phi 
+            endif softening 
         endif 
     enddo over_neigh 
     fxyz_ptmass(1:3,i) = fxyz_ptmass(1:3,i) + fsum

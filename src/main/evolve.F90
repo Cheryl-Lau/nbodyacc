@@ -36,8 +36,8 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  evol_loop: do while (t <= t_end .and. ndump < maxdump)
 
     !--Control timestep 
-    call constrain_dt(nptmass,vxyz_ptmass,fxyz_ptmass,nbin,dt)
-    print*,'time = ',t,'; dt = ',dt,' ; nbin = ',nbin
+    call constrain_dt(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,nbin,dt)
+    write(*,'(A7,E15.5,A11,E15.5,A13,I10)') 'time = ',t,';     dt = ',dt,';     nbin = ',nbin
 
     t_substep = 0.d0 
     substep: do while (t_substep <= dtmax+tiny(dtmax))
@@ -87,8 +87,8 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  enddo evol_loop
 
  print*,'Run completed'
- if (t < t_end)       print*,'Number of dumps reached ',ndump,'/',maxdump 
- if (ndump < maxdump) print*,'Time reached specified t_end: ',t,'/',t_end 
+ if (t < t_end)       write(*,'(A25,I10,A6,I10)') 'Number of dumps reached: ',ndump,'     /',maxdump 
+ if (ndump < maxdump) write(*,'(A30,E15.5,A6,E15.5)') 'Time reached specified t_end: ',t,'     /',t_end 
 
 end subroutine evol 
 

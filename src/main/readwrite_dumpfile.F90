@@ -33,14 +33,14 @@ subroutine write_first_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  write(2010,'(E20.10)') time
 
  binary: if (present(sq_ptmass)) then 
-    write(2010,'(10A20)') 'x','y','z','r_acc','mass','sep','q','vx','vy','vz'
+    write(2010,'(11A20)') 'ID','x','y','z','r_acc','mass','sep','q','vx','vy','vz'
     do i = 1,nptmass 
-        write(2010,'(10E20.10)') xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
+        write(2010,'(I20,10E20.10)') i, xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  else 
-    write(2010,'(8A20)') 'x','y','z','r_acc','mass','vx','vy','vz'
+    write(2010,'(9A20)') 'ID','x','y','z','r_acc','mass','vx','vy','vz'
     do i = 1,nptmass 
-        write(2010,'(8E20.10)') xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
+        write(2010,'(I20,8E20.10)') i, xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif binary 
 
@@ -60,7 +60,7 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  real,    intent(out) :: xyzhm_ptmass(:,:)
  real,    intent(out) :: vxyz_ptmass(:,:)
  real,    intent(out), optional :: sq_ptmass(:,:)
- integer :: i,rc,nentry
+ integer :: i,id,rc,nentry
  logical :: iex,binary
 
  inquire(file=trim(adjustl(dumpfile)),exist=iex)
@@ -88,12 +88,12 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  binary = .false. 
  if (present(sq_ptmass)) then 
     do i = 1,nptmass 
-        read(2011,'(10E20.10)') xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
+        read(2011,'(I20,10E20.10)') id, xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
     binary = .true. 
  else 
     do i = 1,nptmass 
-        read(2011,'(8E20.10)') xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
+        read(2011,'(I20,8E20.10)') id, xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif
 
@@ -180,14 +180,14 @@ subroutine write_dump(time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  write(iunit,'(E20.10)') time 
 
  binary: if (present(sq_ptmass)) then 
-    write(iunit,'(10A20)') 'x','y','z','r_acc','mass','sep','q','vx','vy','vz'
+    write(iunit,'(11A20)') 'ID','x','y','z','r_acc','mass','sep','q','vx','vy','vz'
     do i = 1,nptmass 
-        write(iunit,'(10E20.10)') xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
+        write(iunit,'(I20,10E20.10)') i, xyzhm_ptmass(:,i), sq_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  else 
-    write(iunit,'(8A20)') 'x','y','z','r_acc','mass','vx','vy','vz'
+    write(iunit,'(9A20)') 'ID','x','y','z','r_acc','mass','vx','vy','vz'
     do i = 1,nptmass 
-        write(iunit,'(8E20.10)') xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
+        write(iunit,'(I20,8E20.10)') i, xyzhm_ptmass(:,i), vxyz_ptmass(:,i)
     enddo 
  endif binary 
 
