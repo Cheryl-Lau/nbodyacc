@@ -51,7 +51,7 @@ Running a simulation
 First, in your work-directory, run the command: \
 `./nbodyaccsetup` \
 This creates the initial dumpfile `ptmass_00000.tmp` and an input file `input_params.in` which contains the defaults of the runtime parameters. Modify if necessary. \
-It also creates a `setunits.in` file that stores the code units specified in the setup file. 
+It also creates a `setunits.in` file that stores the code units specified in the setup. 
 
 To begin a simulation with this input file, run: \
 `./nbodyacc` 
