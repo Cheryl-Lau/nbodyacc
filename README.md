@@ -29,7 +29,8 @@ Go to `nbodyacc/build/Makefile` and enter the name of your setup file in: \
 This setup file should be stored in `nbodyacc/src/setup/`.
 
 Choose whether you want self-gravity to be computed: `GRAVITY=yes/no`, \
-and whether the point masses are binary pairs: `BINARY=yes/no`.
+and whether the point masses can be binary pairs: `BINARY=yes/no`. \
+If `BINARY=yes`, the code will store binary separation and mass-ratio for each point mass, and will compute its internal angular momentum. 
 
 Now create a work-directory anywhere _outside_ this code's directory. The work directory is where the simulation outputs are stored. Create a new work-directory for every new run. 
 
@@ -41,7 +42,7 @@ To compile, enter: \
 `make; make setup` 
 
 To re-compile after modifying the source code, enter: \
-`rm nbody*; make clean; make; make setup` \
+`rm nbodyacc*; make clean; make; make setup` \
 which clears the previously generated executables. 
 
 Running a simulation 
@@ -49,7 +50,8 @@ Running a simulation
 
 First, in your work-directory, run the command: \
 `./nbodyaccsetup` \
-This creates the initial dumpfile `ptmass_00000.tmp` and an input file `input_params.in` which contains the defaults of the runtime parameters. Modify if necessary. 
+This creates the initial dumpfile `ptmass_00000.tmp` and an input file `input_params.in` which contains the defaults of the runtime parameters. Modify if necessary. \
+It also creates a `setunits.in` file that stores the code units specified in the setup file. 
 
 To begin a simulation with this input file, run: \
 `./nbodyacc` 
