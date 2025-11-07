@@ -7,7 +7,7 @@ module extforce_king
 
  real, public :: Mclust_msun = 1d3 
  real, public :: Rcore_pc    = 0.2 
- real, public :: sigma_cgs   = 2.3d5
+ real, public :: sigma_cgs   = 1.8d5
 
 
  private 
@@ -19,7 +19,8 @@ module extforce_king
  real    :: phi_profile(nRmax),force_profile(nRmax)
  real    :: Rcore,Rclust,Mclust,sigma 
 
- logical :: print_profile = .true. 
+ logical :: print_profile = .false. 
+ logical :: print_forces  = .false. 
 
  namelist /extforce_kingmodel_params/ Mclust_msun,Rcore_pc,sigma_cgs 
 
@@ -56,6 +57,12 @@ subroutine king_potential(xi,yi,zi,extfxi,extfyi,extfzi,phi)
        extfyi = fr*sin(theta_angle)*sin(phi_angle)
        extfzi = fr*cos(theta_angle)
     endif 
+ endif 
+
+ if (print_forces) then 
+    open(2060,file='extpot_forces.dat',position='append')
+    write(2060,'(9E20.10)') xi, yi, zi, ri, fr, extfxi, extfyi, extfzi, phi 
+    close(2060)
  endif 
 
 end subroutine king_potential
