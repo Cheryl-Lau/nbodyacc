@@ -13,6 +13,7 @@ contains
 subroutine write_infile()
  use timestep, only:write_infile_timestep
  use force,    only:write_infile_force
+ use accrete,  only:write_infile_accrete 
  use readwrite_dump, only:write_infile_startdump
  integer :: rc 
 
@@ -22,6 +23,7 @@ subroutine write_infile()
  call write_infile_startdump(unit_infile)
  call write_infile_timestep(unit_infile)
  call write_infile_force(unit_infile)
+ call write_infile_accrete(unit_infile)
 
  close(unit_infile)
 
@@ -31,6 +33,7 @@ end subroutine write_infile
 subroutine read_infile()
  use timestep, only:read_infile_timestep
  use force,    only:read_infile_force
+ use accrete,  only:read_infile_accrete 
  use readwrite_dump, only:read_infile_startdump
  integer :: rc 
 
@@ -42,6 +45,7 @@ subroutine read_infile()
  call read_infile_startdump(unit_infile)
  call read_infile_timestep(unit_infile)
  call read_infile_force(unit_infile)
+ call read_infile_accrete(unit_infile)
 
  close(unit_infile)
 
