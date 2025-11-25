@@ -35,7 +35,7 @@ subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  nptmass       = 30        ! Number of stars 
  rsphere_pc    = 0.2       ! Sphere radius [pc]
  angvel_cgs    = 3.d-14    ! Rotation angular velocity [rad/s]
- rms_mach      = 10.       ! Turbulence Mach number 
+ rms_mach      = 2.        ! Turbulence Mach number 
  cs_cgs        = 2.19d4    ! Sound speed in cm/s
 
  !--Convert to code units 
