@@ -13,10 +13,7 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  use step_RK4, only:step
  use timestep, only:dtmax,t_end,nout,maxdump,constrain_dt
  use energy,   only:get_energies,get_angmom
- use ptmass,   only:get_accretion_rad,accrete_gas
-#ifdef BINARY
- use ptmass,   only:Lspin_ptmass,update_sep
-#endif 
+ use accrete,  only:get_accretion_radius,accrete_gas
  real,    intent(in)    :: t_init
  integer, intent(inout) :: nptmass 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
@@ -46,10 +43,11 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
        call step(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,dt) 
 
        !--Accrete and update particles 
-       call get_accretion_rad()
-       call accrete_gas()
+       call get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
 #ifdef BINARY
-       call update_sep(nptmass,sq_ptmass)
+       call accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
+#else 
+       call accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass)
 #endif 
 
        t = t + dt
@@ -60,7 +58,7 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
     !--Compute energies and specific angular momentum 
     call get_energies(nptmass,xyzhm_ptmass,vxyz_ptmass,ekin,epot,etot)
 #ifdef BINARY
-    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass,jxyz,jspin,jtot)
+    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot,sq_ptmass,jspin)
 #else 
     call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot)
 #endif 

@@ -3,8 +3,8 @@ module ptmass
 
 
  implicit none 
- public :: update_sep,accrete_gas,get_accretion_rad
- public :: compute_Lxyz,compute_Lspin 
+ public :: compute_Lxyz,compute_Lspin
+ public :: update_sq
  public :: allocate_ptmass,deallocate_ptmass 
 
  integer, public :: maxptmass = 1e3
@@ -25,62 +25,62 @@ module ptmass
 
 contains 
 
+!
+! Compute (specific) orbital angular momentum for a given particle 
+!
+subroutine compute_Lxyz(ip,xi,yi,zi,mi,vxi,vyi,vzi,jxyz,Lxyz)
+ integer, intent(in)  :: ip
+ real,    intent(in)  :: xi,yi,zi,mi,vxi,vyi,vzi
+ real,    intent(out) :: jxyz(3),Lxyz(3)
+ real     :: ri(3),vi(3)
 
-subroutine compute_Lxyz(nptmass,xyzhm_ptmass,vxyz_ptmass,Lxyz_tot,jxyz_tot)
- integer, intent(in)  :: nptmass 
- real,    intent(in)  :: xyzhm_ptmass(:,:)
- real,    intent(in)  :: vxyz_ptmass(:,:)
- real,    intent(out) :: Lxyz_tot(3),jxyz_tot(3)   ! summed over all ptmass 
- integer :: i
- real    :: m,r(3),v(3),r_cross_v(3)
+ ri = (/ xi,  yi,  zi  /)
+ vi = (/ vxi, vyi, vzi /)
+ jxyz = cross_product(ri,vi)
+ Lxyz = mi*cross_product(ri,vi)
 
- Lxyz_tot = 0.d0 
- jxyz_tot = 0.d0 
+ jxyz_ptmass(1:3,ip) = jxyz 
+ Lxyz_ptmass(1:3,ip) = Lxyz 
 
- do i = 1,nptmass
-    r = xyzhm_ptmass(1:3,i)
-    v = vxyz_ptmass(1:3,i)
-    m = xyzhm_ptmass(5,i)
-    r_cross_v = cross_product(r,v)
+end subroutine compute_Lxyz 
 
-    Lxyz_ptmass(1:3,i) = m*r_cross_v
-    Lxyz_tot = Lxyz_tot + Lxyz_ptmass(1:3,i)
+!
+! Compute (specific) spin angular momentum for a given particle 
+! assuming that it only rotates about the z-axis 
+!
+subroutine compute_Lspin(ip,mi,si,qi,jspin,Lspin)
+ integer, intent(in)  :: ip
+ real,    intent(in)  :: mi,si,qi
+ real,    intent(out) :: jspin(3),Lspin(3)
+ real     :: jspinz,Lspinz 
 
-    jxyz_ptmass(1:3,i) = r_cross_v
-    jxyz_tot = jxyz_tot + jxyz_ptmass(1:3,i)
- enddo 
+ Lspinz = sqrt(mi**3*si) * qi/(1.d0+qi)**2
+ jspinz = Lspinz/mi
+ jspin  = (/ 0.d0, 0.d0, jspinz /)
+ Lspin  = (/ 0.d0, 0.d0, Lspinz /)
 
-end subroutine compute_Lxyz
+ jspin_ptmass(1:3,ip) = jspin 
+ Lspin_ptmass(1:3,ip) = Lspin 
 
+end subroutine compute_Lspin 
 
-subroutine compute_Lspin(nptmass,xyzhm_ptmass,sq_ptmass,Lspin_tot,jspin_tot)
- integer, intent(in)  :: nptmass 
- real,    intent(in)  :: xyzhm_ptmass(:,:)
- real,    intent(in)  :: sq_ptmass(:,:)
- real,    intent(out) :: Lspin_tot(3),jspin_tot(3)
- integer :: i
- real    :: mass,sep,q,Lspinz,jspinz 
+!
+! Compute binary separation with given Lspin of a particle 
+!
+subroutine update_sq(mi,qi,Lspinz,si)
+ real, intent(in)  :: mi,qi,Lspinz 
+ real, intent(out) :: si
 
- Lspin_tot = 0.d0 
- jspin_tot = 0.d0 
+ if (qi < tiny(qi)) return      ! single star
 
- do i = 1,nptmass
-     mass = xyzhm_ptmass(5,i)
-     sep = sq_ptmass(1,i)
-     q = sq_ptmass(2,i)
+ si = Lspinz**2 * qi**(-2) * (1.d0+qi)**4 * mi**(-3)
 
-     Lspinz = 2.5d-1*sqrt(mass**3*sep) * q/(1.d0+q)**2
-     Lspin_ptmass(1:3,i) = (/ 0.d0, 0.d0, Lspinz /)
-     Lspin_tot = Lspin_tot + Lspin_ptmass(1:3,i)
-
-     jspinz = Lspinz/mass 
-     jspin_ptmass(1:3,i) = (/ 0.d0, 0.d0, jspinz /)
-     jspin_tot = jspin_tot + jspin_ptmass(1:3,i)
- enddo 
-
-end subroutine compute_Lspin
+end subroutine update_sq
 
 
+!
+! Math tools 
+!
 function cross_product(vec1,vec2)
  real, intent(in)    :: vec1(3),vec2(3)
  real, dimension(3)  :: cross_product
@@ -91,39 +91,9 @@ end function cross_product
 
 
 
-subroutine accrete_gas()
-
-end subroutine accrete_gas
-
-
-subroutine get_accretion_rad()
-
-
-end subroutine get_accretion_rad
-
-
-subroutine get_tidal_rad()
-
-
-end subroutine get_tidal_rad
-
-
-subroutine get_bondi_hyole()
-
-end subroutine get_bondi_hyole
-
-
-subroutine update_sep(nptmass,sq_ptmass)
- integer, intent(in)    :: nptmass 
- real,    intent(inout) :: sq_ptmass(:,:)
-
- 
-
-end subroutine update_sep
-
-
-
-
+!
+! Allocate memory 
+!
 subroutine allocate_ptmass
 
  allocate(xyzhm_ptmass(5,maxptmass))
@@ -139,8 +109,6 @@ subroutine allocate_ptmass
 #endif 
 
 end subroutine allocate_ptmass
- 
-
 
 subroutine deallocate_ptmass
 
