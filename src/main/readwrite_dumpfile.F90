@@ -82,7 +82,7 @@ subroutine read_dump(dumpfile,time,nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
 
  !--Read file 
  read(2011,*) 
- read(2011,'(A20)') time 
+ read(2011,'(10E20.10)') time 
  read(2011,*) 
 
  binary = .false. 
