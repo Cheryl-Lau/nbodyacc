@@ -3,8 +3,10 @@ module ptmass
 
 
  implicit none 
- public :: compute_Lxyz,compute_Lspin
- public :: update_sq
+ public :: compute_Lxyz
+#ifdef BINARY
+ public :: update_sq,compute_Lspin
+#endif 
  public :: allocate_ptmass,deallocate_ptmass 
 
  integer, public :: maxptmass = 1e3
@@ -48,6 +50,7 @@ end subroutine compute_Lxyz
 ! Compute (specific) spin angular momentum for a given particle 
 ! assuming that it only rotates about the z-axis 
 !
+#ifdef BINARY
 subroutine compute_Lspin(ip,mi,si,qi,jspin,Lspin)
  integer, intent(in)  :: ip
  real,    intent(in)  :: mi,si,qi
@@ -63,10 +66,12 @@ subroutine compute_Lspin(ip,mi,si,qi,jspin,Lspin)
  Lspin_ptmass(1:3,ip) = Lspin 
 
 end subroutine compute_Lspin 
+#endif 
 
 !
 ! Compute binary separation with given Lspin of a particle 
 !
+#ifdef BINARY
 subroutine update_sq(mi,qi,Lspinz,si)
  real, intent(in)  :: mi,qi,Lspinz 
  real, intent(out) :: si
@@ -76,6 +81,7 @@ subroutine update_sq(mi,qi,Lspinz,si)
  si = Lspinz**2 * qi**(-2) * (1.d0+qi)**4 * mi**(-3)
 
 end subroutine update_sq
+#endif 
 
 
 !

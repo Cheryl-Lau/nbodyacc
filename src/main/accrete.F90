@@ -40,7 +40,7 @@ end subroutine get_cloud_rotation
 
 !
 ! Function to compute relative sink-gas velocity 
-! in tangential direction to rotation
+! in tangential direction on xy-plane
 !
 real function relative_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas)
  real, intent(in) :: xi,yi,vxi,vyi,vzi,vtan_gas
@@ -165,7 +165,10 @@ end function bondihyole_radius
 subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  use units,   only:unit_density 
  use physcon, only:pi 
- use ptmass,  only:compute_Lxyz,compute_Lspin,update_sq
+ use ptmass,  only:compute_Lxyz
+#ifdef BINARY
+ use ptmass,  only:compute_Lspin,update_sq
+#endif 
  integer, intent(in)    :: nptmass 
  real,    intent(in)    :: dt 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
@@ -196,10 +199,10 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
     fxi = fxyz_ptmass(1,i)
     fyi = fxyz_ptmass(2,i)
     fzi = fxyz_ptmass(3,i)
-    if (present(sq_ptmass)) then 
-       si = sq_ptmass(1,i)
-       qi = sq_ptmass(2,i)
-    endif 
+#ifdef BINARY
+    si = sq_ptmass(1,i)
+    qi = sq_ptmass(2,i)
+#endif 
 
     !--Compute the accretable range of j 
     jxyz  = 0.d0 
@@ -207,9 +210,9 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
     jspin = 0.d0 
     Lspin = 0.d0 
     call compute_Lxyz(i,xi,yi,zi,mi,vxi,vyi,vzi,jxyz,Lxyz)
-    if (present(sq_ptmass)) then 
-       call compute_Lspin(i,mi,si,qi,jspin,Lspin)
-    endif 
+#ifdef BINARY
+    call compute_Lspin(i,mi,si,qi,jspin,Lspin)
+#endif 
     jz_sink = jxyz(3) + jspin(3)
     call compute_accretable_jrange(r_acc,mi,jz_sink,jz_min,jz_max)
 
@@ -262,10 +265,10 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
        Lspin(1) = Lspin(1) - Lxyz(1)
        Lspin(2) = Lspin(2) - Lxyz(2)
        Lspin(3) = Lspin(3) - Lxyz(3)
-       if (present(sq_ptmass)) then 
-          call update_sq(mi,qi,Lspin(3),si)
-          call compute_Lspin(i,mi,si,qi,jspin,Lspin)
-       endif 
+#ifdef BINARY
+       call update_sq(mi,qi,Lspin(3),si)
+       call compute_Lspin(i,mi,si,qi,jspin,Lspin)
+#endif 
        
        !--Store updated properties 
        xyzhm_ptmass(1,i) = xi 
@@ -278,11 +281,10 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
        fxyz_ptmass(1,i)  = fxi 
        fxyz_ptmass(2,i)  = fyi 
        fxyz_ptmass(3,i)  = fzi 
-       if (present(sq_ptmass)) then 
-          sq_ptmass(1,i) = si 
-          sq_ptmass(2,i) = qi
-       endif 
-
+#ifdef BINARY
+       sq_ptmass(1,i) = si 
+       sq_ptmass(2,i) = qi
+#endif 
     endif 
  enddo 
 
