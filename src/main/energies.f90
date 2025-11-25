@@ -47,17 +47,19 @@ end subroutine get_energies
 !
 ! Compute total angular momentum of all particles 
 !
-subroutine get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot,sq_ptmass,jspin)
- use ptmass, only:compute_Lxyz,compute_Lspin
+subroutine get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot,sq_ptmass)
+ use ptmass, only:compute_Lxyz
+#ifdef BINARY
+ use ptmass, only:compute_Lspin
+#endif 
  integer, intent(in)  :: nptmass 
  real,    intent(in)  :: xyzhm_ptmass(:,:)
  real,    intent(in)  :: vxyz_ptmass(:,:)
- real,    intent(in),  optional :: sq_ptmass(:,:)
- real,    intent(out), optional :: jspin(3)
  real,    intent(out) :: jxyz(3),jtot(3)
+ real,    intent(in), optional :: sq_ptmass(:,:)
  integer :: i
  real    :: xi,yi,zi,mi,vxi,vyi,vzi,si,qi
- real    :: jxyzi(3),Lxyzi(3),jspini(3),Lspini(3)
+ real    :: jxyzi(3),Lxyzi(3),jspini(3),Lspini(3),jspin(3)
 
  jxyz  = 0.d0 
  jspin = 0.d0 
@@ -76,12 +78,12 @@ subroutine get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot,sq_ptmass,jspin
     jxyz = jxyz + jxyzi
 
     !--Spin angular momentum 
-    binary: if (present(sq_ptmass)) then 
-       si = sq_ptmass(1,i)
-       qi = sq_ptmass(2,i)
-       call compute_Lspin(i,mi,si,qi,jspini,Lspini)
-       jspin = jspin + jspini 
-    endif binary 
+#ifdef BINARY
+     si = sq_ptmass(1,i)
+     qi = sq_ptmass(2,i)
+     call compute_Lspin(i,mi,si,qi,jspini,Lspini)
+     jspin = jspin + jspini 
+#endif 
  enddo 
 
  jtot = jxyz + jspin 

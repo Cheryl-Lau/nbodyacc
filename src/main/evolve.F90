@@ -58,7 +58,8 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
     !--Compute energies and specific angular momentum 
     call get_energies(nptmass,xyzhm_ptmass,vxyz_ptmass,ekin,epot,etot)
 #ifdef BINARY
-    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot,sq_ptmass,jspin)
+    call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot,sq_ptmass)
+    jspin = jtot - jxyz 
 #else 
     call get_angmom(nptmass,xyzhm_ptmass,vxyz_ptmass,jxyz,jtot)
 #endif 
