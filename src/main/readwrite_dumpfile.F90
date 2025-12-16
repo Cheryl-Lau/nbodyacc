@@ -120,7 +120,7 @@ subroutine get_first_dump(starting_dump)
  character(len=16) :: filename_search,lastfile
 
  !--Check the last snapshot file saved
- ifile_search = 100
+ ifile_search = 99999
  lastfile_found = .false.
  do while (.not.lastfile_found)
     call gen_filename(ifile_search,filename_search)
