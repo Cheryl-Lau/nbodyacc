@@ -82,7 +82,7 @@ subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
     zi = xyzhm_ptmass(3,i)
     ri = sqrt(xi*xi + yi*yi + zi*zi)
     mi = xyzhm_ptmass(5,i)
-    r_hill = hillsphere_radius(ri,mi)
+    r_hill = hillsphere_radius(ri,mi,nptmass,xyzhm_ptmass)
     r_acc = min(r_acc,r_hill)
 
     !--Bondi-Hyole radius 
@@ -118,16 +118,32 @@ end subroutine get_accretion_radius
 ! Tidal radius with respect to the whole cluster 
 ! aka Jacobi radius, or Hill sphere, or Roche sphere 
 !
-real function hillsphere_radius(ri,mi)
+real function hillsphere_radius(ri,mi,nptmass,xyzhm_ptmass)
  use physcon, only:solarm,pc 
  use units,   only:umass,udist 
- real, intent(in)  :: ri,mi
- real  :: Mcloud,Rcloud,M_enclosed,r_enclosed
+ integer, intent(in) :: nptmass 
+ real,    intent(in) :: ri,mi
+ real,    intent(in) :: xyzhm_ptmass(:,:)
+ integer :: j 
+ real    :: xj,yj,zj,rj,mj
+ real    :: Mcloud,Rcloud,M_enclosed,r_enclosed
 
  Mcloud = Mcloud_solarm*solarm/umass 
  Rcloud = Rcloud_pc*pc/udist 
  r_enclosed = min(ri,Rcloud)
  M_enclosed = Mcloud * (r_enclosed/Rcloud)**3
+
+ !--include sink masses 
+ do j = 1,nptmass 
+    xj = xyzhm_ptmass(1,j)
+    yj = xyzhm_ptmass(2,j)
+    zj = xyzhm_ptmass(3,j)
+    rj = sqrt(xj*xj + yj*yj * zj*zj)
+    if (rj < r_enclosed-tiny(r_enclosed)) then 
+       mj = xyzhm_ptmass(5,j)
+       M_enclosed = M_enclosed + mj 
+    endif 
+ enddo 
 
  hillsphere_radius = (mi/(3.d0*M_enclosed))**(1.d0/3.d0) * ri
 
