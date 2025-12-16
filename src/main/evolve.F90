@@ -43,7 +43,7 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
        call step(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,dt) 
 
        !--Accrete and update particles 
-       call get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
+       call get_accretion_radius(t,nptmass,xyzhm_ptmass,vxyz_ptmass)
 #ifdef BINARY
        call accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
 #else 

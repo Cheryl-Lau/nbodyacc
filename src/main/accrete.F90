@@ -13,6 +13,8 @@ module accrete
  real,    public :: angvel_cgs    = 3.d-14    ! Cloud angular velocity [rad/s]
  real,    public :: cs_cgs        = 2.19d4    ! Sound speed [cm/s]
 
+ logical, public :: print_r_acc   = .true.    ! Option to print individual r_acc terms 
+
  private
 
  namelist /accrete_params/ iaccrete,Mcloud_solarm,Rcloud_pc,rho_cgs,angvel_cgs,cs_cgs 
@@ -64,12 +66,14 @@ end function relative_vtan_sinkgas
 ! Estimate the accretion radii and store as h
 !
 !+--------------------------------------------------------------
-subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
+subroutine get_accretion_radius(time,nptmass,xyzhm_ptmass,vxyz_ptmass)
+ use ptmass, only:racc_ptmass
  integer, intent(in)    :: nptmass 
+ real,    intent(in)    :: time 
  real,    intent(in)    :: vxyz_ptmass(:,:)
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  integer :: i,j
- real    :: r_acc,r_hill,r_bondihyole,r_tidalneigh 
+ real    :: r_acc,r_hill,r_bondihoyle,r_tidalneigh,rmin_tidalneigh
  real    :: xi,yi,zi,ri,mi,xj,yj,zj,rj,mj,rij
  real    :: vxi,vyi,vzi,vi,vtan_gas,vx_gas,vy_gas,dv_sinkgas,jz_gas
  
@@ -92,10 +96,11 @@ subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
     vi  = sqrt(vxi*vxi + vyi*vyi + vzi*vzi)
     call get_cloud_rotation(xi,yi,zi,ri,vx_gas,vy_gas,vtan_gas,jz_gas)
     dv_sinkgas = relative_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas)
-    r_bondihyole = bondihyole_radius(mi,dv_sinkgas)
-    r_acc = min(r_acc,r_bondihyole)
+    r_bondihoyle = bondihoyle_radius(mi,dv_sinkgas)
+    r_acc = min(r_acc,r_bondihoyle)
 
     !--Tidal radius wrt neighbours 
+    rmin_tidalneigh = huge(rmin_tidalneigh)
     do j = 1,nptmass 
        if (i /= j) then 
           xj  = xyzhm_ptmass(1,j)
@@ -105,12 +110,25 @@ subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
           rij = abs(ri - rj)
           mj  = xyzhm_ptmass(5,j)
           r_tidalneigh = tidalneigh_radius(mi,mj,rij)
-          r_acc = min(r_acc,r_tidalneigh)
+          rmin_tidalneigh = min(rmin_tidalneigh,r_tidalneigh)
        endif 
     enddo 
+    r_acc = min(r_acc,rmin_tidalneigh)
 
+    !--Store results 
+    racc_ptmass(1,i)  = r_hill 
+    racc_ptmass(2,i)  = r_bondihoyle 
+    racc_ptmass(3,i)  = rmin_tidalneigh
     xyzhm_ptmass(4,i) = r_acc
  enddo 
+
+ if (print_r_acc) then 
+    open(2090,file='accretion_radii.ev',status='old',position='append')
+    do i = 1,nptmass 
+       write(2090,'(1E20.10,I20,3E20.10)') time,i,racc_ptmass(1:3,i)
+    enddo 
+    close(2090)
+ endif 
 
 end subroutine get_accretion_radius
 
@@ -162,15 +180,15 @@ end function tidalneigh_radius
 !
 ! Bondi-Hyole radius 
 !
-real function bondihyole_radius(mi,dv_sinkgas)
+real function bondihoyle_radius(mi,dv_sinkgas)
  use units, only:unit_velocity 
  real, intent(in)  :: mi,dv_sinkgas
  real  :: cs 
 
  cs = cs_cgs/unit_velocity
- bondihyole_radius = 2.d0*mi/(dv_sinkgas**2+cs**2)
+ bondihoyle_radius = 2.d0*mi/(dv_sinkgas**2+cs**2)
 
-end function bondihyole_radius
+end function bondihoyle_radius
 
 
 !+--------------------------------------------------------------

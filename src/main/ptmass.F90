@@ -9,7 +9,7 @@ module ptmass
 #endif 
  public :: allocate_ptmass,deallocate_ptmass 
 
- integer, public :: maxptmass = 1e3
+ integer, public :: maxptmass = 1e2
  integer, public :: nptmass 
  real,    public, allocatable :: xyzhm_ptmass(:,:) ! position, accretion radius, mass 
  real,    public, allocatable :: vxyz_ptmass(:,:)  ! velocity 
@@ -22,6 +22,7 @@ module ptmass
  real,    public, allocatable :: Lspin_ptmass(:,:) ! angular momentum around COM of binary 
  real,    public, allocatable :: jspin_ptmass(:,:) ! specific angular momentum around COM of binary
 #endif 
+ real,    public, allocatable :: racc_ptmass(:,:)  ! individual r_acc terms 
 
  private
 
@@ -113,8 +114,10 @@ subroutine allocate_ptmass
  allocate(Lspin_ptmass(3,maxptmass))
  allocate(jspin_ptmass(3,maxptmass))
 #endif 
+ allocate(racc_ptmass(3,maxptmass))
 
 end subroutine allocate_ptmass
+
 
 subroutine deallocate_ptmass
 
@@ -129,6 +132,7 @@ subroutine deallocate_ptmass
  deallocate(Lspin_ptmass)
  deallocate(jspin_ptmass)
 #endif 
+ deallocate(racc_ptmass)
 
 end subroutine deallocate_ptmass
  
