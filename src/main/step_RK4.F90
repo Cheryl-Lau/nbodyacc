@@ -3,8 +3,13 @@ module step_RK4
 
  implicit none 
  public :: step 
+ public :: read_infile_step,write_infile_step
+
+ integer, public :: isink_to_pin = 0   ! ID of sink to pin (0 = switch off)
 
  private 
+
+ namelist /step_params/ isink_to_pin
 
 contains 
 
@@ -48,11 +53,37 @@ subroutine step(nptmass,xyzhm,vxyz,fxyz,dt)
 
  !--Actual update 
  do i = 1,nptmass
-    vxyz(:,i) = vxyz(:,i) + 1.d0/6.d0 * (fxyz0(:,i) + 2.d0*fxyz1(:,i) + 2.d0*fxyz2(:,i) + fxyz3(:,i)) * dt 
-    xyzhm(1:3,i) = xyzhm(1:3,i) + 1.d0/6.d0 * (vxyz(:,i) + 2.d0*vxyz1(:,i) + 2.d0*vxyz2(:,i) + vxyz3(:,i)) * dt
+    if (i /= isink_to_pin) then 
+       vxyz(:,i) = vxyz(:,i) + 1.d0/6.d0 * (fxyz0(:,i) + 2.d0*fxyz1(:,i) + 2.d0*fxyz2(:,i) + fxyz3(:,i)) * dt 
+       xyzhm(1:3,i) = xyzhm(1:3,i) + 1.d0/6.d0 * (vxyz(:,i) + 2.d0*vxyz1(:,i) + 2.d0*vxyz2(:,i) + vxyz3(:,i)) * dt
+    endif 
     fxyz(:,i) = 1.d0/6.d0 * (fxyz0(:,i) + 2.d0*fxyz1(:,i) + 2.d0*fxyz2(:,i) + fxyz3(:,i))  ! for dt 
  enddo 
 
 end subroutine step
+
+
+!--------------------------------------------------------------
+! Write module options to input file
+!--------------------------------------------------------------
+subroutine read_infile_step(unit_infile)
+ integer, intent(in) :: unit_infile
+ integer :: rc
+
+ read(unit_infile,nml=step_params,iostat=rc)
+ if (rc /= 0) stop 'cannot read step options'
+
+end subroutine read_infile_step
+
+
+subroutine write_infile_step(unit_infile)
+ integer, intent(in) :: unit_infile
+ integer :: rc
+
+ write(unit_infile,nml=step_params,iostat=rc)
+ if (rc /= 0) stop 'cannot write step options'
+
+end subroutine write_infile_step
+
 
 end module step_RK4

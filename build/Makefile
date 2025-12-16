@@ -115,7 +115,7 @@ nbodyacc: $(OBJECTS) nbodyacc.o
 #
 SRCSETUP= physcon.f90 units.f90 timestep.f90 ptmass.F90 energies.F90 accrete.F90 \
           extforce_plummer.f90 extforce_galactic.f90 extforce_king.f90 \
-          forces.F90 readwrite_dumpfile.f90 \
+          forces.F90 step_RK4.F90 readwrite_dumpfile.f90 \
           vel_turbcube.f90 transform_com.f90 random.f90 readwrite_infile.F90 ${SETUPFILE} 
 
 OBJSETUP1= $(SRCSETUP:.f90=.o)
