@@ -13,7 +13,8 @@ module accrete
  real,    public :: angvel_cgs    = 3.d-14    ! Cloud angular velocity [rad/s]
  real,    public :: cs_cgs        = 2.19d4    ! Sound speed [cm/s]
 
- logical, public :: print_r_acc   = .true.    ! Option to print individual r_acc terms 
+ logical, public :: print_r_acc   = .true.    ! Option to write individual r_acc terms 
+ logical, public :: print_j_range = .true.    ! Option to write accretable j range of sinks
 
  private
 
@@ -196,15 +197,16 @@ end function bondihoyle_radius
 ! Accrete and update ptmass properties 
 !
 !+--------------------------------------------------------------
-subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
+subroutine accrete_gas(time,dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  use units,   only:unit_density 
  use physcon, only:pi 
+ use ptmass,  only:jrange_ptmass
  use ptmass,  only:compute_Lxyz
 #ifdef BINARY
  use ptmass,  only:compute_Lspin,update_sq
 #endif 
  integer, intent(in)    :: nptmass 
- real,    intent(in)    :: dt 
+ real,    intent(in)    :: time,dt 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: vxyz_ptmass(:,:)
  real,    intent(inout) :: fxyz_ptmass(:,:)
@@ -212,8 +214,9 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
  integer :: i
  real    :: xi,yi,zi,mi,ri,vxi,vyi,vzi,fxi,fyi,fzi,si,qi
  real    :: jspin(3),Lspin(3),jxyz(3),Lxyz(3)
- real    :: r_acc,jz_sink,jz_min,jz_max,jz_gas,jz_gas_inner,jz_gas_outer
- real    :: dv_sinkgas,vx_gas,vy_gas,vtan_gas,rho
+ real    :: r_acc,jx_sink,jy_sink,jz_sink,jz_min,jz_max,jz_gas
+ real    :: jz_gas_inner,jz_gas_outer
+ real    :: dv_sinkgas,vx_gas,vy_gas,vtan_gas,rho,jgas_min,jgas_max
  real    :: dm,dxm,dym,dzm,dvxm,dvym,dvzm,dfxm,dfym,dfzm,dLx,dLy,dLz
  real    :: mnew,mnew1 
  logical :: accretable
@@ -247,11 +250,16 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
 #ifdef BINARY
     call compute_Lspin(i,mi,si,qi,jspin,Lspin)
 #endif 
+    jx_sink = jxyz(1) + jspin(1)
+    jy_sink = jxyz(2) + jspin(2)
     jz_sink = jxyz(3) + jspin(3)
     call compute_accretable_jrange(r_acc,mi,jz_sink,jz_min,jz_max)
 
     !--Check if the cloud gas around ri falls within j-range 
-    call check_gas_accretable(ri,r_acc,jz_min,jz_max,accretable)
+    call check_gas_accretable(ri,r_acc,jz_min,jz_max,jgas_min,jgas_max,accretable)
+
+    !--Store accretable j range
+    jrange_ptmass(1:7,i) = (/ jx_sink, jy_sink, jz_sink, jz_min, jz_max, jgas_min, jgas_max /)
 
 
     if (iaccrete > 0 .and. accretable) then 
@@ -322,6 +330,14 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
     endif 
  enddo 
 
+ if (print_j_range) then 
+    open(2100,file='accretable_j_range.ev',status='old',position='append')
+    do i = 1,nptmass 
+       write(2100,'(1E20.10,I20,7E20.10)') time,i,jrange_ptmass(1:7,i)
+    enddo 
+    close(2100)
+ endif 
+
 end subroutine accrete_gas 
 
 
@@ -345,12 +361,12 @@ end subroutine compute_accretable_jrange
 !
 ! Check if the j of gas around ri falls within [jz_min,jz_max]
 !
-subroutine check_gas_accretable(ri,r_acc,jz_min,jz_max,accretable)
+subroutine check_gas_accretable(ri,r_acc,jz_min,jz_max,jz_gas_inner,jz_gas_outer,accretable)
  real,    intent(in)  :: ri,r_acc
  real,    intent(in)  :: jz_min,jz_max
+ real,    intent(out) :: jz_gas_inner,jz_gas_outer
  logical, intent(out) :: accretable
  real    :: xi,yi,zi,vx_gas,vy_gas,vtan_gas
- real    :: jz_gas_inner,jz_gas_outer
 
  xi = -1  ! dummy 
  yi = -1 

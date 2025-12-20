@@ -11,19 +11,20 @@ module ptmass
 
  integer, public :: maxptmass = 1e2
  integer, public :: nptmass 
- real,    public, allocatable :: xyzhm_ptmass(:,:) ! position, accretion radius, mass 
- real,    public, allocatable :: vxyz_ptmass(:,:)  ! velocity 
- real,    public, allocatable :: fxyz_ptmass(:,:)  ! forces   
- real,    public, allocatable :: poten_ptmass(:)   ! potentials 
- real,    public, allocatable :: Lxyz_ptmass(:,:)  ! angular momentum in sim frame
- real,    public, allocatable :: jxyz_ptmass(:,:)  ! specific angular momentum in sim frame 
+ real,    public, allocatable :: xyzhm_ptmass(:,:)  ! position, accretion radius, mass 
+ real,    public, allocatable :: vxyz_ptmass(:,:)   ! velocity 
+ real,    public, allocatable :: fxyz_ptmass(:,:)   ! forces   
+ real,    public, allocatable :: poten_ptmass(:)    ! potentials 
+ real,    public, allocatable :: Lxyz_ptmass(:,:)   ! angular momentum in sim frame
+ real,    public, allocatable :: jxyz_ptmass(:,:)   ! specific angular momentum in sim frame 
 #ifdef BINARY
- real,    public, allocatable :: sq_ptmass(:,:)    ! separation and mass-ratio of binary pair 
- real,    public, allocatable :: Lspin_ptmass(:,:) ! angular momentum around COM of binary 
- real,    public, allocatable :: jspin_ptmass(:,:) ! specific angular momentum around COM of binary
+ real,    public, allocatable :: sq_ptmass(:,:)     ! separation and mass-ratio of binary pair 
+ real,    public, allocatable :: Lspin_ptmass(:,:)  ! angular momentum around COM of binary 
+ real,    public, allocatable :: jspin_ptmass(:,:)  ! specific angular momentum around COM of binary
 #endif 
- real,    public, allocatable :: racc_ptmass(:,:)  ! individual r_acc terms 
-
+ real,    public, allocatable :: racc_ptmass(:,:)   ! individual r_acc terms 
+ real,    public, allocatable :: jrange_ptmass(:,:) ! store j range in sink POV
+ 
  private
 
 contains 
@@ -115,6 +116,7 @@ subroutine allocate_ptmass
  allocate(jspin_ptmass(3,maxptmass))
 #endif 
  allocate(racc_ptmass(3,maxptmass))
+ allocate(jrange_ptmass(7,maxptmass))
 
 end subroutine allocate_ptmass
 
@@ -133,6 +135,7 @@ subroutine deallocate_ptmass
  deallocate(jspin_ptmass)
 #endif 
  deallocate(racc_ptmass)
+ deallocate(jrange_ptmass)
 
 end subroutine deallocate_ptmass
  
