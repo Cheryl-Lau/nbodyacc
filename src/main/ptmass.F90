@@ -9,7 +9,7 @@ module ptmass
 #endif 
  public :: allocate_ptmass,deallocate_ptmass 
 
- integer, public :: maxptmass = 1e2
+ integer, public :: maxptmass = 60
  integer, public :: nptmass 
  real,    public, allocatable :: xyzhm_ptmass(:,:)  ! position, accretion radius, mass 
  real,    public, allocatable :: vxyz_ptmass(:,:)   ! velocity 

@@ -13,7 +13,7 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  use step_RK4, only:step
  use timestep, only:dtmax,t_end,nout,maxdump,constrain_dt
  use energy,   only:get_energies,get_angmom
- use accrete,  only:get_accretion_radius,accrete_gas
+ use accrete,  only:get_accretion_radius,accrete_gas,write_accfile
  real,    intent(in)    :: t_init
  integer, intent(inout) :: nptmass 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
@@ -43,11 +43,11 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
        call step(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,dt) 
 
        !--Accrete and update particles 
-       call get_accretion_radius(t,nptmass,xyzhm_ptmass,vxyz_ptmass)
+       call get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
 #ifdef BINARY
-       call accrete_gas(t,dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
+       call accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
 #else 
-       call accrete_gas(t,dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass)
+       call accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass)
 #endif 
 
        t = t + dt
@@ -70,6 +70,9 @@ subroutine evol(t_init,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
 #else 
     call write_evfile(t,ekin,epot,etot,jxyz)
 #endif 
+
+    !--Write accretion info 
+    call write_accfile(t)
 
     !--Write dump every <nout> dtmax 
     if (iout == nout) then 

@@ -4,15 +4,16 @@ module accrete
  implicit none 
  public :: get_accretion_radius
  public :: accrete_gas
- public :: read_infile_accrete,write_infile_accrete
+ public :: read_infile_accrete,write_infile_accrete,write_accfile
  
  integer, public :: iaccrete      = 1         ! Option to let sinks accrete
- real,    public :: Mcloud_solarm = 1.d3      ! Cloud mass [msun]
+ real,    public :: Mcloud_solarm = 1.d+3     ! Cloud mass [msun]
  real,    public :: Rcloud_pc     = 0.2       ! Cloud radius [pc]
- real,    public :: rho_cgs       = 1.d-21    ! Cloud density [g/cm3]
+ real,    public :: rho_cgs       = 4.d-20    ! Cloud density [g/cm3]
  real,    public :: angvel_cgs    = 3.d-14    ! Cloud angular velocity [rad/s]
- real,    public :: cs_cgs        = 2.19d4    ! Sound speed [cm/s]
+ real,    public :: cs_cgs        = 2.19d+4   ! Sound speed [cm/s]
 
+ integer, public :: isink_print   = 1         ! ID of sink of concern 
  logical, public :: print_r_acc   = .true.    ! Option to write individual r_acc terms 
  logical, public :: print_j_range = .true.    ! Option to write accretable j range of sinks
 
@@ -67,10 +68,9 @@ end function relative_vtan_sinkgas
 ! Estimate the accretion radii and store as h
 !
 !+--------------------------------------------------------------
-subroutine get_accretion_radius(time,nptmass,xyzhm_ptmass,vxyz_ptmass)
+subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
  use ptmass, only:racc_ptmass
  integer, intent(in)    :: nptmass 
- real,    intent(in)    :: time 
  real,    intent(in)    :: vxyz_ptmass(:,:)
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  integer :: i,j
@@ -117,19 +117,11 @@ subroutine get_accretion_radius(time,nptmass,xyzhm_ptmass,vxyz_ptmass)
     r_acc = min(r_acc,rmin_tidalneigh)
 
     !--Store results 
-    racc_ptmass(1,i)  = r_hill 
-    racc_ptmass(2,i)  = r_bondihoyle 
-    racc_ptmass(3,i)  = rmin_tidalneigh
     xyzhm_ptmass(4,i) = r_acc
+    racc_ptmass(1,i)  = r_hill
+    racc_ptmass(2,i)  = r_bondihoyle
+    racc_ptmass(3,i)  = rmin_tidalneigh
  enddo 
-
- if (print_r_acc) then 
-    open(2090,file='accretion_radii.ev',status='old',position='append')
-    do i = 1,nptmass 
-       write(2090,'(1E20.10,I20,3E20.10)') time,i,racc_ptmass(1:3,i)
-    enddo 
-    close(2090)
- endif 
 
 end subroutine get_accretion_radius
 
@@ -197,16 +189,16 @@ end function bondihoyle_radius
 ! Accrete and update ptmass properties 
 !
 !+--------------------------------------------------------------
-subroutine accrete_gas(time,dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
+subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  use units,   only:unit_density 
  use physcon, only:pi 
- use ptmass,  only:jrange_ptmass
+ use ptmass,  only:jrange_ptmass 
  use ptmass,  only:compute_Lxyz
 #ifdef BINARY
  use ptmass,  only:compute_Lspin,update_sq
 #endif 
  integer, intent(in)    :: nptmass 
- real,    intent(in)    :: time,dt 
+ real,    intent(in)    :: dt 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: vxyz_ptmass(:,:)
  real,    intent(inout) :: fxyz_ptmass(:,:)
@@ -258,8 +250,14 @@ subroutine accrete_gas(time,dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_p
     !--Check if the cloud gas around ri falls within j-range 
     call check_gas_accretable(ri,r_acc,jz_min,jz_max,jgas_min,jgas_max,accretable)
 
-    !--Store accretable j range
-    jrange_ptmass(1:7,i) = (/ jx_sink, jy_sink, jz_sink, jz_min, jz_max, jgas_min, jgas_max /)
+    !--Store accretable j-range info 
+    jrange_ptmass(1,i) = jx_sink 
+    jrange_ptmass(2,i) = jy_sink 
+    jrange_ptmass(3,i) = jz_sink 
+    jrange_ptmass(4,i) = jz_min 
+    jrange_ptmass(5,i) = jz_max 
+    jrange_ptmass(6,i) = jgas_min 
+    jrange_ptmass(7,i) = jgas_max 
 
 
     if (iaccrete > 0 .and. accretable) then 
@@ -330,14 +328,6 @@ subroutine accrete_gas(time,dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_p
     endif 
  enddo 
 
- if (print_j_range) then 
-    open(2100,file='accretable_j_range.ev',status='old',position='append')
-    do i = 1,nptmass 
-       write(2100,'(1E20.10,I20,7E20.10)') time,i,jrange_ptmass(1:7,i)
-    enddo 
-    close(2100)
- endif 
-
 end subroutine accrete_gas 
 
 
@@ -381,6 +371,30 @@ subroutine check_gas_accretable(ri,r_acc,jz_min,jz_max,jz_gas_inner,jz_gas_outer
  endif 
 
 end subroutine check_gas_accretable
+
+
+
+!--------------------------------------------------------------
+! Write computed accretion properties to file
+!--------------------------------------------------------------
+subroutine write_accfile(time)
+ use ptmass, only:racc_ptmass
+ use ptmass, only:jrange_ptmass 
+ real, intent(in) :: time 
+
+ if (print_r_acc) then 
+    open(2090,file='accretion_radii.ev',status='old',position='append')
+    write(2090,'(1E20.10,I20,3E20.10)') time,isink_print,racc_ptmass(1:3,isink_print)
+    close(2090)
+ endif 
+
+ if (print_j_range) then 
+    open(2100,file='accretable_j_range.ev',status='old',position='append')
+    write(2100,'(1E20.10,I20,7E20.10)') time,isink_print,jrange_ptmass(1:7,isink_print)
+    close(2100)
+ endif 
+
+end subroutine write_accfile
 
 
 

@@ -5,7 +5,7 @@ module step_RK4
  public :: step 
  public :: read_infile_step,write_infile_step
 
- integer, public :: isink_to_pin = 0   ! ID of sink to pin (0 = switch off)
+ integer, public :: isink_to_pin = 0   ! ID of sink to pin (0: switch off)
 
  private 
 
