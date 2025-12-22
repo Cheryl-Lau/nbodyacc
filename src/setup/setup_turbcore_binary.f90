@@ -32,11 +32,11 @@ subroutine set_ptmass(nptmass,xyzhm_ptmass,vxyz_ptmass,sq_ptmass)
  call set_units(dist=udist,mass=umass,G=1.d0)
 
  !--Inputs 
- nptmass       = 30        ! Number of stars 
+ nptmass       = 50        ! Number of stars 
  rsphere_pc    = 0.2       ! Sphere radius [pc]
  angvel_cgs    = 3.d-14    ! Rotation angular velocity [rad/s]
- rms_mach      = 2.        ! Turbulence Mach number 
- cs_cgs        = 2.19d4    ! Sound speed in cm/s
+ rms_mach      = 15.       ! Turbulence Mach number 
+ cs_cgs        = 2.19d+4   ! Sound speed in cm/s
 
  !--Convert to code units 
  rsphere = rsphere_pc*pc/udist 
