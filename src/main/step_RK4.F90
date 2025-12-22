@@ -60,6 +60,12 @@ subroutine step(nptmass,xyzhm,vxyz,fxyz,dt)
     fxyz(:,i) = 1.d0/6.d0 * (fxyz0(:,i) + 2.d0*fxyz1(:,i) + 2.d0*fxyz2(:,i) + fxyz3(:,i))  ! for dt 
  enddo 
 
+ !--Catch NaNs 
+ if (vxyz(2,nptmass) /= vxyz(2,nptmass) .or. xyzhm(2,nptmass) /= xyzhm(2,nptmass) .or. &
+   & fxyz(2,nptmass) /= fxyz(2,nptmass)) then 
+    stop 'NaNs detected - Try reduce maxptmass'
+ endif 
+
 end subroutine step
 
 
