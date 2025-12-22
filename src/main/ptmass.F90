@@ -23,8 +23,9 @@ module ptmass
  real,    public, allocatable :: jspin_ptmass(:,:)  ! specific angular momentum around COM of binary
 #endif 
  real,    public, allocatable :: racc_ptmass(:,:)   ! individual r_acc terms 
- real,    public, allocatable :: jrange_ptmass(:,:) ! store j range in sink POV
- 
+ real,    public, allocatable :: jrange_ptmass(:,:) ! j range in sink POV
+ real,    public, allocatable :: vrel_ptmass(:,:)   ! sink-gas velocities 
+
  private
 
 contains 
@@ -117,6 +118,7 @@ subroutine allocate_ptmass
 #endif 
  allocate(racc_ptmass(3,maxptmass))
  allocate(jrange_ptmass(7,maxptmass))
+ allocate(vrel_ptmass(3,maxptmass))
 
 end subroutine allocate_ptmass
 
@@ -136,6 +138,7 @@ subroutine deallocate_ptmass
 #endif 
  deallocate(racc_ptmass)
  deallocate(jrange_ptmass)
+ deallocate(vrel_ptmass)
 
 end subroutine deallocate_ptmass
  

@@ -11,7 +11,7 @@ contains
 subroutine init(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
  use force,         only:compute_forces,iextforce,iext_king
  use extforce_king, only:cluster_profile
- use accrete,       only:print_r_acc,print_j_range 
+ use accrete,       only:print_r_acc,print_j_range,print_v_rel
  integer, intent(inout) :: nptmass 
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  real,    intent(inout) :: vxyz_ptmass(:,:)
@@ -38,6 +38,11 @@ subroutine init(nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass)
     write(2100,'(9A20)') 'time','sink ID','jx_sink','jy_sink','jz_sink','jacc_min', &
                        & 'jacc_max','jgas_min','jgas_max'
     close(2100)
+ endif 
+ if (print_v_rel) then 
+    open(2200,file='vrel_sinkgas.ev',status='replace')
+    write(2200,'(5A20)') 'time','sink ID','vtan_sink','vtan_gas','vrel_sinkgas'
+    close(2200)
  endif 
 
 end subroutine init

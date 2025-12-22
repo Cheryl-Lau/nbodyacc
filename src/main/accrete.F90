@@ -16,6 +16,7 @@ module accrete
  integer, public :: isink_print   = 1         ! ID of sink of concern 
  logical, public :: print_r_acc   = .true.    ! Option to write individual r_acc terms 
  logical, public :: print_j_range = .true.    ! Option to write accretable j range of sinks
+ logical, public :: print_v_rel   = .true.    ! Option to write relative sink-gas velocity 
 
  private
 
@@ -43,13 +44,14 @@ subroutine get_cloud_rotation(x,y,z,r,vx_gas,vy_gas,vtan_gas,jz_gas)
 end subroutine get_cloud_rotation
 
 !
-! Function to compute relative sink-gas velocity 
+! Routine to compute relative sink-gas velocity 
 ! in tangential direction on xy-plane
 !
-real function relative_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas)
- real, intent(in) :: xi,yi,vxi,vyi,vzi,vtan_gas
- real :: rtan_mag,vtan_sink
- real :: v_vec(3),rtan_vec(3),rtan_uvec(3)
+subroutine get_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas,vtan_sink,dv_sinkgas)
+ real, intent(in)  :: xi,yi,vxi,vyi,vzi,vtan_gas
+ real, intent(out) :: vtan_sink,dv_sinkgas
+ real  :: rtan_mag
+ real  :: v_vec(3),rtan_vec(3),rtan_uvec(3)
 
  v_vec = (/ vxi, vyi, vzi /)
 
@@ -58,9 +60,10 @@ real function relative_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas)
  rtan_uvec = (/ -yi/rtan_mag, xi/rtan_mag, 0.d0 /) 
  vtan_sink = dot_product(v_vec,rtan_uvec)
 
- relative_vtan_sinkgas = abs(vtan_sink - vtan_gas)
+ dv_sinkgas = abs(vtan_sink - vtan_gas)
 
-end function relative_vtan_sinkgas
+end subroutine get_vtan_sinkgas
+
 
 
 !+--------------------------------------------------------------
@@ -69,14 +72,14 @@ end function relative_vtan_sinkgas
 !
 !+--------------------------------------------------------------
 subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
- use ptmass, only:racc_ptmass
+ use ptmass, only:racc_ptmass,vrel_ptmass
  integer, intent(in)    :: nptmass 
  real,    intent(in)    :: vxyz_ptmass(:,:)
  real,    intent(inout) :: xyzhm_ptmass(:,:)
  integer :: i,j
  real    :: r_acc,r_hill,r_bondihoyle,r_tidalneigh,rmin_tidalneigh
  real    :: xi,yi,zi,ri,mi,xj,yj,zj,rj,mj,rij
- real    :: vxi,vyi,vzi,vi,vtan_gas,vx_gas,vy_gas,dv_sinkgas,jz_gas
+ real    :: vxi,vyi,vzi,vi,vtan_sink,vtan_gas,vx_gas,vy_gas,dv_sinkgas,jz_gas
  
  do i = 1,nptmass 
     r_acc = huge(r_acc)
@@ -96,7 +99,7 @@ subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
     vzi = vxyz_ptmass(3,i)
     vi  = sqrt(vxi*vxi + vyi*vyi + vzi*vzi)
     call get_cloud_rotation(xi,yi,zi,ri,vx_gas,vy_gas,vtan_gas,jz_gas)
-    dv_sinkgas = relative_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas)
+    call get_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas,vtan_sink,dv_sinkgas)
     r_bondihoyle = bondihoyle_radius(mi,dv_sinkgas)
     r_acc = min(r_acc,r_bondihoyle)
 
@@ -121,6 +124,9 @@ subroutine get_accretion_radius(nptmass,xyzhm_ptmass,vxyz_ptmass)
     racc_ptmass(1,i)  = r_hill
     racc_ptmass(2,i)  = r_bondihoyle
     racc_ptmass(3,i)  = rmin_tidalneigh
+    vrel_ptmass(1,i)  = vtan_sink
+    vrel_ptmass(2,i)  = vtan_gas
+    vrel_ptmass(3,i)  = dv_sinkgas
  enddo 
 
 end subroutine get_accretion_radius
@@ -208,7 +214,8 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
  real    :: jspin(3),Lspin(3),jxyz(3),Lxyz(3)
  real    :: r_acc,jx_sink,jy_sink,jz_sink,jz_min,jz_max,jz_gas
  real    :: jz_gas_inner,jz_gas_outer
- real    :: dv_sinkgas,vx_gas,vy_gas,vtan_gas,rho,jgas_min,jgas_max
+ real    :: vtan_gas,vtan_sink
+ real    :: dv_sinkgas,vx_gas,vy_gas,rho,jgas_min,jgas_max
  real    :: dm,dxm,dym,dzm,dvxm,dvym,dvzm,dfxm,dfym,dfzm,dLx,dLy,dLz
  real    :: mnew,mnew1 
  logical :: accretable
@@ -265,7 +272,7 @@ subroutine accrete_gas(dt,nptmass,xyzhm_ptmass,vxyz_ptmass,fxyz_ptmass,sq_ptmass
        call get_cloud_rotation(xi,yi,zi,ri,vx_gas,vy_gas,vtan_gas,jz_gas)
 
        !--Accrete mass 
-       dv_sinkgas = relative_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas)
+       call get_vtan_sinkgas(xi,yi,vxi,vyi,vzi,vtan_gas,vtan_sink,dv_sinkgas)
        rho = rho_cgs/unit_density 
        dm  = pi*r_acc**2 * rho * dv_sinkgas * dt 
 
@@ -378,8 +385,7 @@ end subroutine check_gas_accretable
 ! Write computed accretion properties to file
 !--------------------------------------------------------------
 subroutine write_accfile(time)
- use ptmass, only:racc_ptmass
- use ptmass, only:jrange_ptmass 
+ use ptmass, only:racc_ptmass,jrange_ptmass,vrel_ptmass
  real, intent(in) :: time 
 
  if (print_r_acc) then 
@@ -392,6 +398,12 @@ subroutine write_accfile(time)
     open(2100,file='accretable_j_range.ev',status='old',position='append')
     write(2100,'(1E20.10,I20,7E20.10)') time,isink_print,jrange_ptmass(1:7,isink_print)
     close(2100)
+ endif 
+
+ if (print_v_rel) then 
+    open(2200,file='vrel_sinkgas.ev',status='old',position='append')
+    write(2200,'(1E20.10,I20,7E20.10)') time,isink_print,vrel_ptmass(1:3,isink_print)
+    close(2200)
  endif 
 
 end subroutine write_accfile
